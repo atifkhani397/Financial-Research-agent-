@@ -1,0 +1,21 @@
+{
+    "name": "peer_comparison",
+    "description": "Fetches industry peers and comparative metrics. Use this for relative valuation and industry benchmarking (Tier 2).",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "ticker": {
+                "type": "string",
+                "description": "The primary stock ticker symbol."
+            },
+            "metric": {
+                "type": "string",
+                "description": "The metric to compare against peers."
+            }
+        },
+        "required": [
+            "ticker",
+            "metric"
+        ]
+    }
+}

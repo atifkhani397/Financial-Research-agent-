@@ -1,0 +1,21 @@
+{
+    "name": "news_sentiment",
+    "description": "Aggregates and scores sentiment from financial news. Use this to understand market perception and recent media coverage impact (Tier 4).",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "ticker": {
+                "type": "string",
+                "description": "The stock ticker symbol."
+            },
+            "days_back": {
+                "type": "integer",
+                "default": 7,
+                "description": "Number of days to look back for news."
+            }
+        },
+        "required": [
+            "ticker"
+        ]
+    }
+}

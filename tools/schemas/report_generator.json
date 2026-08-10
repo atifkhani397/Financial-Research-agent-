@@ -1,0 +1,19 @@
+{
+    "name": "report_generator",
+    "description": "Formats verified data into the final structured research report. Use this ONLY at the very end of the planning loop to synthesize the final output.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "sections": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "The sections of the report to generate, including title and verified content."
+            }
+        },
+        "required": [
+            "sections"
+        ]
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "name": "financial_data_api",
+    "description": "Retrieves structured financial metrics and historical pricing data. Use this for quantitative data like P/E ratios, revenue figures, and historical prices (Tier 2).",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "ticker": {
+                "type": "string",
+                "description": "The stock ticker symbol."
+            },
+            "metric": {
+                "type": "string",
+                "description": "The specific financial metric requested (e.g., 'revenue', 'pe_ratio')."
+            }
+        },
+        "required": [
+            "ticker",
+            "metric"
+        ]
+    }
+}

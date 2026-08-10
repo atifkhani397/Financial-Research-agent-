@@ -1,0 +1,21 @@
+{
+    "name": "vector_db_store",
+    "description": "Stores new findings into the agent's long-term memory. Use this to save important extracted facts for later retrieval.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "content": {
+                "type": "string",
+                "description": "The text content to store."
+            },
+            "metadata": {
+                "type": "object",
+                "description": "Associated metadata (ticker, source_type, date, etc.)."
+            }
+        },
+        "required": [
+            "content",
+            "metadata"
+        ]
+    }
+}

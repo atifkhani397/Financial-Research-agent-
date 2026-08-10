@@ -1,0 +1,32 @@
+{
+    "name": "earnings_transcript",
+    "description": "Fetches management commentary from earnings calls. Use this to gauge management sentiment, forward guidance, and qualitative explanations of financial results (Tier 3).",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "ticker": {
+                "type": "string",
+                "description": "The stock ticker symbol."
+            },
+            "year": {
+                "type": "integer",
+                "description": "The year of the earnings call."
+            },
+            "quarter": {
+                "type": "string",
+                "enum": [
+                    "Q1",
+                    "Q2",
+                    "Q3",
+                    "Q4"
+                ],
+                "description": "The quarter."
+            }
+        },
+        "required": [
+            "ticker",
+            "year",
+            "quarter"
+        ]
+    }
+}

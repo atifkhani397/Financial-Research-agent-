@@ -1,0 +1,32 @@
+{
+    "name": "calculation_engine",
+    "description": "Performs safe math operations. Use this to calculate ratios, growth rates, or aggregates rather than attempting mental math in the LLM.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "operation": {
+                "type": "string",
+                "enum": [
+                    "add",
+                    "subtract",
+                    "multiply",
+                    "divide",
+                    "ratio",
+                    "growth_rate"
+                ],
+                "description": "The math operation to perform."
+            },
+            "operands": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                },
+                "description": "The numbers to operate on."
+            }
+        },
+        "required": [
+            "operation",
+            "operands"
+        ]
+    }
+}

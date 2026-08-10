@@ -1,0 +1,16 @@
+{
+    "name": "web_search",
+    "description": "Performs a general web search. Use this for macro trends, recent news that hasn't hit financial APIs, or general context gathering (Tier 5 reliability).",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": "The search query."
+            }
+        },
+        "required": [
+            "query"
+        ]
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "name": "company_profile",
+    "description": "Retrieves static metadata about a company. Use this to get background information, sector, industry, and executive details (Tier 2).",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "ticker": {
+                "type": "string",
+                "description": "The stock ticker symbol."
+            }
+        },
+        "required": [
+            "ticker"
+        ]
+    }
+}

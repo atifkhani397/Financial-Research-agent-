@@ -1,0 +1,21 @@
+{
+    "name": "fact_checker",
+    "description": "Verifies synthesized claims against the highest-tier source context available. Use this to validate conflicting information before adding it to the report.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "claim": {
+                "type": "string",
+                "description": "The factual claim to verify."
+            },
+            "source_context": {
+                "type": "string",
+                "description": "The text from the authoritative source to check against."
+            }
+        },
+        "required": [
+            "claim",
+            "source_context"
+        ]
+    }
+}

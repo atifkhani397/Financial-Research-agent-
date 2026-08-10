@@ -1,0 +1,30 @@
+{
+    "name": "sec_filing_search",
+    "description": "Searches SEC EDGAR for official filings like 10-K or 10-Q. Use this when you need the most authoritative, Tier 1 financial data and direct management statements from official filings.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "ticker": {
+                "type": "string",
+                "description": "The stock ticker symbol (e.g., AAPL)."
+            },
+            "filing_type": {
+                "type": "string",
+                "enum": [
+                    "10-K",
+                    "10-Q",
+                    "8-K"
+                ],
+                "description": "The type of SEC filing."
+            },
+            "year": {
+                "type": "integer",
+                "description": "The year of the filing."
+            }
+        },
+        "required": [
+            "ticker",
+            "filing_type"
+        ]
+    }
+}
