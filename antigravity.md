@@ -87,6 +87,7 @@ Project1A-AtifKhan-AutonomousFinancialResearchAgent/
 ## WORKING RULES
 - Never fabricate financial data, citations, or API behavior in code comments or docstrings.
 - Every tool must have a mock/stub mode.
-- After each day's work, give: (1) short summary, (2) exact commit message from Day-XX format, (3) uncertainties/assumptions.
+- After each day's work, give: (1) short summary, (2) the exact commit message, WITHOUT the "Day-XX:" prefix (e.g. "Agent Architecture Specification - Atif Khan"), (3) uncertainties/assumptions.
+- **CRITICAL COMMIT RULE**: Do NOT add day numbers in the commit message. Use only the exact message text required without the day prefix.
 - Flag, don't silently resolve, any place where the brief's own spec is ambiguous or internally inconsistent.
 - Do not start Day N+1 work until Day N is confirmed.
