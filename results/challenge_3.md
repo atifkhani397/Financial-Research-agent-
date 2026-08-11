@@ -71,4 +71,4 @@ Comparative valuation metrics gathered via `peer_comparison`:
 - **Termination**: all_steps_completed
 - **Tool calls used**: 8/20
 - **Steps completed**: 8/8
-- **Wall-clock time**: 0.1s
+- **Wall-clock time**: 0.4s

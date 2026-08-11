@@ -47,4 +47,4 @@ Calculated via `calculation_engine` (`growth_rate` operation):
 - **Termination**: all_steps_completed
 - **Tool calls used**: 8/20
 - **Steps completed**: 8/8
-- **Wall-clock time**: 9.4s
+- **Wall-clock time**: 4.4s
