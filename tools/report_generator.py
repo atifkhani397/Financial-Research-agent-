@@ -1,8 +1,15 @@
+"""Mock stub for report_generator tool."""
+
+
 def execute(**kwargs):
-    """Stub implementation for report_generator."""
+    """Return a formatted report structure."""
+    sections = kwargs.get("sections", [])
+
     return {
+        "report_format": "markdown",
+        "sections_received": len(sections),
+        "sections": sections,
+        "status": "generated",
+        "_source": "report_generator",
         "_mock": True,
-        "tool": "report_generator",
-        "data": f"Structurally realistic mock data for report_generator",
-        "inputs": kwargs
     }

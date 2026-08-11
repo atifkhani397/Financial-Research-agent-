@@ -1,8 +1,17 @@
+"""Mock stub for fact_checker tool."""
+
+
 def execute(**kwargs):
-    """Stub implementation for fact_checker."""
+    """Return structurally realistic fact check results."""
+    claim = kwargs.get("claim", "")
+    source_context = kwargs.get("source_context", "")
+
     return {
+        "claim": claim,
+        "verified": True,
+        "confidence": 0.92,
+        "source_match": True,
+        "notes": "Claim is consistent with the provided source context.",
+        "_source": "fact_checker",
         "_mock": True,
-        "tool": "fact_checker",
-        "data": f"Structurally realistic mock data for fact_checker",
-        "inputs": kwargs
     }
