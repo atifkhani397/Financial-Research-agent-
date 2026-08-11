@@ -42,6 +42,9 @@ from agent.parser import (
 from agent.logger import log_tool_call, log_agent_step
 from memory.context_manager import ContextManager
 from memory.episodic import EpisodicMemory
+from agent.error_handler import ErrorHandler, ErrorCategory
+from agent.fallback_chains import FallbackChainManager
+from agent.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger("ara1.agent")
 
@@ -54,6 +57,7 @@ class AgentConfig:
     max_plan_steps: int = 15          # Max steps the planner can produce
     max_react_cycles: int = 3         # Max Thought→Action→Observation per step
     max_wall_clock_seconds: int = 300 # 5-minute wall-clock timeout
+    simulate_tool_failure_rate: float = 0.0  # Debug flag for simulated tool failure stress testing
     planning_model_role: str = "planning"
     executor_model_role: str = "fast"
     synthesis_model_role: str = "planning"
@@ -136,6 +140,13 @@ class FinancialResearchAgent:
         # Three-layer memory components
         self.context_manager = ContextManager(max_context_tokens=8000, compression_threshold=0.70)
         self.episodic_memory = EpisodicMemory()
+
+        # Day 9 Error Handling, Fallback, & Circuit Breaker components
+        self.error_handler = ErrorHandler(max_retries=5)
+        self.fallback_manager = FallbackChainManager()
+        self.circuit_breaker = CircuitBreaker(max_consecutive_failures=3)
+        self.degraded_sections: dict[str, dict] = {}
+        self.tool_results_history: list[dict] = []
 
     # ── Public Entry Point ───────────────────────────────────────────
     def run(self, query: str, session_id: str | None = None) -> dict:
@@ -417,19 +428,62 @@ class FinancialResearchAgent:
                     log_agent_step("ACTION", f"Calling {tc}",
                                    session_id=self.session_id)
 
-                    # Execute the tool
+                    # Execute tool with Circuit Breaker, Exponential Retry, & Fallback Chain
                     obs_start = time.time()
-                    try:
-                        result = self.registry.execute_tool(
-                            tc.tool_name, tc.arguments
+                    tool_name = tc.tool_name
+                    tool_args = tc.arguments
+
+                    # 1. Check Circuit Breaker
+                    if self.circuit_breaker.is_open(tool_name):
+                        logger.warning(
+                            f"[Circuit Breaker OPEN] Bypassing primary tool '{tool_name}' and routing directly to fallback chain."
                         )
-                        obs_str = json.dumps(result, indent=2, default=str)
-                        success = True
-                        error = None
-                    except Exception as e:
-                        obs_str = f"ERROR: {str(e)}"
-                        success = False
-                        error = str(e)
+                        fb_success, fb_result = self.fallback_manager.execute_fallback_chain(
+                            self.registry, tool_name, tool_args, self.circuit_breaker
+                        )
+                        result = fb_result
+                        success = fb_success
+                        error = None if fb_success else "Circuit Breaker OPEN & Fallbacks Exhausted"
+                    else:
+                        # 2. Execute Primary Tool with Retry Handler
+                        def _tool_fn():
+                            return self.registry.execute_tool(
+                                tool_name, tool_args, simulate_failure_rate=self.config.simulate_tool_failure_rate
+                            )
+
+                        success, result, err_category = self.error_handler.execute_with_retry(
+                            _tool_fn, tool_name=tool_name
+                        )
+
+                        if success and isinstance(result, dict) and not result.get("error"):
+                            self.circuit_breaker.record_success(tool_name)
+                            error = None
+                        else:
+                            error_msg = str(result.get("error", "Tool execution failed")) if isinstance(result, dict) else str(result)
+                            self.circuit_breaker.record_failure(tool_name, error_detail=error_msg)
+
+                            # Trigger Fallback Chain
+                            logger.info(f"[Primary Tool Failed] Triggering Fallback Chain for '{tool_name}'.")
+                            fb_success, fb_result = self.fallback_manager.execute_fallback_chain(
+                                self.registry, tool_name, tool_args, self.circuit_breaker
+                            )
+                            if fb_success:
+                                result = fb_result
+                                success = True
+                                error = None
+                            else:
+                                success = False
+                                error = error_msg
+                                sec_name = description or "Financial Analysis"
+                                self.degraded_sections[sec_name] = {
+                                    "cause": f"Primary tool '{tool_name}' failed ({error_msg}) and fallback chain was exhausted.",
+                                    "tools_attempted": [tool_name] + self.fallback_manager.get_fallbacks(tool_name),
+                                    "user_mitigation": f"Manually verify {tool_name} data via SEC EDGAR 10-K or check API key status.",
+                                }
+
+                    if isinstance(result, dict):
+                        self.tool_results_history.append(result)
+                    obs_str = json.dumps(result, indent=2, default=str)
 
                     obs_latency = (time.time() - obs_start) * 1000
                     self.total_tool_calls += 1
@@ -565,6 +619,14 @@ class FinancialResearchAgent:
         )
 
         report = response.get("content", "")
+
+        # Append graceful degradation warnings if any sections were degraded
+        if self.degraded_sections:
+            from tools.report_generator import format_degradation_notice
+            report += "\n\n## Section Degradation Disclosures\n"
+            for sec, deg in self.degraded_sections.items():
+                report += "\n" + format_degradation_notice(sec, deg)
+
         self._add_trace("SYNTHESIS", content=f"Report generated ({len(report)} chars)")
 
         # Append metadata footer

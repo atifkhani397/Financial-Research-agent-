@@ -1,14 +1,21 @@
 import os
 import json
+import random
+import logging
 import importlib
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
+logger = logging.getLogger("ara1.tools.tool_registry")
+
+
 class InputValidationError(Exception):
     pass
 
+
 class ToolExecutionError(Exception):
     pass
+
 
 class ToolRegistry:
     def __init__(self, schemas_dir="tools/schemas"):
@@ -23,27 +30,35 @@ class ToolRegistry:
             tool_name = filename[:-5]
             with open(os.path.join(self.schemas_dir, filename), "r") as f:
                 self.schemas[tool_name] = json.load(f)
-            
+
             try:
                 module = importlib.import_module(f"tools.{tool_name}")
                 self.tools[tool_name] = getattr(module, "execute")
             except Exception as e:
-                print(f"Warning: Failed to load tool implementation for {tool_name}: {e}")
+                logger.warning(f"Failed to load tool implementation for {tool_name}: {e}")
 
     def get_all_schemas(self):
         return list(self.schemas.values())
 
-    def execute_tool(self, tool_name, kwargs):
+    def execute_tool(self, tool_name: str, kwargs: dict, simulate_failure_rate: float = 0.0) -> dict:
         if tool_name not in self.schemas:
             raise ToolExecutionError(f"Tool {tool_name} not found in registry.")
 
         schema = self.schemas[tool_name].get("parameters", {})
-        
+
         try:
             validate(instance=kwargs, schema=schema)
         except ValidationError as e:
             raise InputValidationError(f"Input validation failed for {tool_name}: {e.message}")
-            
+
+        if simulate_failure_rate > 0.0 and random.random() < simulate_failure_rate:
+            logger.warning(f"[SIMULATED FAILURE INJECTED] Primary tool '{tool_name}' failed (Simulated 500 API Error).")
+            return {
+                "error": f"Simulated 500 API Error for primary tool '{tool_name}'",
+                "_simulated_failure": True,
+                "_source": f"simulated_{tool_name}",
+            }
+
         try:
             return self.tools[tool_name](**kwargs)
         except Exception as e:
