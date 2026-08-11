@@ -1,33 +1,52 @@
-"""Mock stub for peer_comparison tool — returns realistic comparison data."""
+"""
+ARA-1 Tool: peer_comparison (Real Integration)
+
+Compares a ticker's metrics against industry peers using real financial_api data.
+"""
+
+from typing import Any, Dict
+from tools import financial_api
 
 
-def execute(**kwargs):
-    """Return structurally realistic peer comparison data."""
-    ticker = kwargs.get("ticker", "UNKNOWN")
-    metric = kwargs.get("metric", "market_cap")
+def execute(ticker: str, metric: str = "market_cap", **kwargs) -> Dict[str, Any]:
+    """Fetch comparative metrics for primary ticker and industry peers."""
+    ticker_clean = ticker.strip().upper()
+    metric_clean = metric.strip().lower()
 
-    if ticker.upper() == "MSFT":
-        return {
-            "ticker": "MSFT",
-            "metric": metric,
-            "peers": [
-                {"ticker": "AAPL", "name": "Apple Inc.", "value": 3450000000000},
-                {"ticker": "MSFT", "name": "Microsoft Corp.", "value": 3120000000000},
-                {"ticker": "GOOGL", "name": "Alphabet Inc.", "value": 2180000000000},
-                {"ticker": "AMZN", "name": "Amazon.com Inc.", "value": 2050000000000},
-                {"ticker": "NVDA", "name": "NVIDIA Corp.", "value": 2950000000000},
-            ],
-            "msft_rank": 2,
-            "msft_percentile": 95,
-            "_source": "peer_comparison",
-            "_mock": True,
-        }
+    # Define standard peer groups
+    peers_map = {
+        "MSFT": ["AAPL", "GOOGL", "AMZN", "NVDA", "ORCL"],
+        "AAPL": ["MSFT", "GOOGL", "AMZN", "NVDA", "SSNLF"],
+        "GOOGL": ["MSFT", "AAPL", "AMZN", "META", "NVDA"],
+        "NVDA": ["AMD", "INTC", "TSM", "AVGO", "MSFT"],
+    }
+    peer_list = peers_map.get(ticker_clean, ["MSFT", "AAPL", "GOOGL", "AMZN"])
+
+    primary_data = financial_api.get_financial_metrics(ticker_clean, metric_clean)
+
+    peer_results = []
+    # Fetch primary ticker
+    peer_results.append({
+        "ticker": ticker_clean,
+        "name": f"{ticker_clean} Corp",
+        "value": primary_data.get("market_cap") if metric_clean == "market_cap" else primary_data.get("revenue"),
+    })
+
+    # Fetch peers
+    for p_ticker in peer_list[:4]:
+        if p_ticker == ticker_clean:
+            continue
+        try:
+            p_data = financial_api.get_financial_metrics(p_ticker, metric_clean)
+            val = p_data.get("market_cap") if metric_clean == "market_cap" else p_data.get("revenue")
+            peer_results.append({"ticker": p_ticker, "name": f"{p_ticker} Corp", "value": val})
+        except Exception:
+            pass
 
     return {
-        "ticker": ticker,
-        "metric": metric,
-        "peers": [],
-        "note": f"No mock peer data for {ticker}",
-        "_source": "peer_comparison",
-        "_mock": True,
+        "ticker": ticker_clean,
+        "metric": metric_clean,
+        "peers": peer_results,
+        "_source": "peer_comparison_real",
+        "_mock": False,
     }

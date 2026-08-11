@@ -1,54 +1,41 @@
-"""Mock stub for earnings_transcript tool — returns realistic Microsoft earnings data."""
+"""
+ARA-1 Tool: earnings_transcript (Real Integration via Tavily/SEC)
+
+Fetches earnings call transcript commentary and forward guidance using real web/SEC search.
+"""
+
+from typing import Any, Dict, Optional
+from tools import web_search
 
 
-def execute(**kwargs):
-    """Return structurally realistic earnings transcript data."""
-    ticker = kwargs.get("ticker", "UNKNOWN")
-    year = kwargs.get("year", 2025)
-    quarter = kwargs.get("quarter", "Q4")
+def execute(ticker: str, year: Optional[int] = None, quarter: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+    """Retrieve management commentary and forward guidance for earnings calls."""
+    ticker_clean = ticker.strip().upper()
+    q_str = f"{quarter} " if quarter else ""
+    y_str = f"{year} " if year else ""
+    query = f"{ticker_clean} {y_str}{q_str}earnings call transcript management commentary guidance highlights"
 
-    if ticker.upper() == "MSFT":
-        return {
-            "ticker": "MSFT",
-            "year": year,
-            "quarter": quarter,
-            "date": "2025-07-22",
-            "participants": [
-                "Satya Nadella - Chairman & CEO",
-                "Amy Hood - Executive VP & CFO",
-                "Brett Iversen - VP, Investor Relations",
-            ],
-            "key_quotes": [
-                {
-                    "speaker": "Satya Nadella",
-                    "quote": "We are seeing strong and accelerating demand for our AI platform. Azure AI services revenue more than doubled year-over-year as customers move from experimentation to production deployment.",
-                },
-                {
-                    "speaker": "Amy Hood",
-                    "quote": "Commercial remaining performance obligation increased 21% and 22% in constant currency to $295 billion, demonstrating strong long-term demand signals across our cloud portfolio.",
-                },
-                {
-                    "speaker": "Satya Nadella",
-                    "quote": "Copilot is becoming the UI for AI. We now have over 2.5 million Copilot users across enterprise customers, with usage growing at triple-digit rates quarter-over-quarter.",
-                },
-            ],
-            "guidance": {
-                "next_quarter_revenue": "We expect Q1 FY2026 revenue between $67.2B and $68.5B.",
-                "azure_growth_outlook": "We expect Azure revenue growth to accelerate in Q1 driven by continued AI infrastructure buildout.",
-                "capex_outlook": "Capital expenditures will increase sequentially as we expand cloud and AI capacity globally.",
-            },
-            "_source": "earnings_transcript",
-            "_mock": True,
-        }
+    search_res = web_search.execute(query=query, max_results=4)
+    results = search_res.get("results", [])
+
+    quotes = []
+    guidance = []
+    for item in results:
+        title = item.get("title", "")
+        snippet = item.get("snippet", "")
+        if "guidance" in snippet.lower() or "outlook" in snippet.lower() or "expect" in snippet.lower():
+            guidance.append({"source": title, "text": snippet})
+        else:
+            quotes.append({"source": title, "text": snippet})
 
     return {
-        "ticker": ticker,
+        "ticker": ticker_clean,
         "year": year,
         "quarter": quarter,
-        "participants": [],
-        "key_quotes": [],
-        "guidance": {},
-        "note": f"No mock transcript for {ticker}",
-        "_source": "earnings_transcript",
-        "_mock": True,
+        "query": query,
+        "key_quotes": quotes[:3],
+        "guidance": guidance[:3],
+        "sources": [r.get("url") for r in results if r.get("url")],
+        "_source": "earnings_transcript_real",
+        "_mock": False,
     }

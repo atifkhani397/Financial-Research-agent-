@@ -10,8 +10,9 @@ def test_registry_loads_all_tools():
 def test_input_validation_success():
     registry = ToolRegistry()
     result = registry.execute_tool("sec_filing_search", {"ticker": "AAPL", "filing_type": "10-K"})
-    assert result["_mock"] is True
-    assert result["_source"] == "sec_filing_search"
+    assert result["_mock"] is False
+    assert result["_source"] == "sec_edgar"
+    assert result["ticker"] == "AAPL"
 
 def test_input_validation_failure_missing_required():
     registry = ToolRegistry()
@@ -23,37 +24,34 @@ def test_input_validation_failure_wrong_type():
     with pytest.raises(InputValidationError):
         registry.execute_tool("calculation_engine", {"operation": "add", "operands": ["not", "a", "number"]})
 
-def test_stub_web_search():
+def test_web_search_real():
     registry = ToolRegistry()
-    result = registry.execute_tool("web_search", {"query": "AI trends"})
-    assert result["_mock"] is True
-    assert result["query"] == "AI trends"
+    result = registry.execute_tool("web_search", {"query": "Microsoft latest AI news"})
+    assert result["_mock"] is False
+    assert result["query"] == "Microsoft latest AI news"
+    assert "results" in result
 
-def test_stub_earnings_transcript():
+def test_news_sentiment_real():
     registry = ToolRegistry()
-    result = registry.execute_tool("earnings_transcript", {"ticker": "NVDA", "year": 2023, "quarter": "Q3"})
-    assert result["_mock"] is True
-    assert result["ticker"] == "NVDA"
+    result = registry.execute_tool("news_sentiment", {"ticker": "MSFT", "days_back": 7})
+    assert result["_mock"] is False
+    assert result["ticker"] == "MSFT"
+    assert "overall_sentiment" in result
 
-def test_company_profile_msft():
-    """Test the upgraded MSFT company profile mock data."""
+def test_company_profile_real_msft():
     registry = ToolRegistry()
     result = registry.execute_tool("company_profile", {"ticker": "MSFT"})
-    assert result["_mock"] is True
-    assert result["name"] == "Microsoft Corporation"
-    assert result["ceo"] == "Satya Nadella"
-    assert len(result["executives"]) >= 6
+    assert result["_mock"] is False
+    assert "Microsoft" in result.get("name", "")
 
-def test_financial_data_api_msft():
-    """Test the upgraded MSFT financial data mock."""
+def test_financial_data_api_real_msft():
     registry = ToolRegistry()
     result = registry.execute_tool("financial_data_api", {"ticker": "MSFT", "metric": "overview"})
-    assert result["_mock"] is True
-    assert result["revenue"] == 245122000000
-    assert result["pe_ratio"] == 35.2
+    assert result["_mock"] is False
+    assert result["ticker"] == "MSFT"
+    assert result.get("revenue") is not None or result.get("price") is not None
 
 def test_calculation_engine_actual_math():
-    """Test that calculation_engine performs real math."""
     registry = ToolRegistry()
     result = registry.execute_tool("calculation_engine", {"operation": "add", "operands": [10, 20]})
     assert result["result"] == 30
