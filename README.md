@@ -18,8 +18,8 @@
 | **Day 5** | Live API Data Sources | ✅ Complete | Real SEC EDGAR, Financial Modeling Prep (FMP), Tavily, NewsAPI |
 | **Day 6** | Three-Layer Memory Architecture | ✅ Complete | Short-term context compaction, Chroma long-term vector store with structural chunking, Episodic memory |
 | **Day 7** | 12-Tool Registry Live & Challenges 3–4 | ✅ Complete | All 12 tools functional (`dcf`, `fact_checker`, `peer_comparison`, `earnings_transcript`, `report_generator`) |
-| **Day 8** | Multi-Source Synthesis & Source Hierarchy | ⏳ Next | Conflict resolution protocol, 5-tier reliability hierarchy |
-| **Day 9** | Fallback Chains & Circuit Breakers | 📅 Upcoming | Resilience under simulated 50% API failure rate |
+| **Day 8** | Multi-Source Synthesis & Source Hierarchy | ✅ Complete | Conflict resolution protocol, 5-tier reliability hierarchy, sentiment-fact alignment |
+| **Day 9** | Fallback Chains & Circuit Breakers | ⏳ Next | Resilience under simulated 50% API failure rate |
 | **Day 10** | Error Recovery & Stress Testing | 📅 Upcoming | Challenge 8 (5/5 difficulty) graceful degradation |
 | **Day 11** | Evaluation Framework & LLM-as-Judge | 📅 Upcoming | 20+ metrics evaluation engine |
 | **Day 12** | Token Usage Analysis & Optimization | 📅 Upcoming | Efficiency benchmarks & optimization logs |
