@@ -20,8 +20,8 @@
 | **Day 7** | 12-Tool Registry Live & Challenges 3–4 | ✅ Complete | All 12 tools functional (`dcf`, `fact_checker`, `peer_comparison`, `earnings_transcript`, `report_generator`) |
 | **Day 8** | Multi-Source Synthesis & Source Hierarchy | ✅ Complete | Conflict resolution protocol, 5-tier reliability hierarchy, sentiment-fact alignment |
 | **Day 9** | Fallback Chains & Circuit Breakers | ✅ Complete | Resilience under simulated 50% API failure rate, exponential backoff, circuit breaker |
-| **Day 10** | Error Recovery & Stress Testing | ⏳ Next | Challenge 8 (5/5 difficulty) graceful degradation |
-| **Day 11** | Evaluation Framework & LLM-as-Judge | 📅 Upcoming | 20+ metrics evaluation engine |
+| **Day 10** | Query Disambiguation & Edge Cases | ✅ Complete | Section A8.3 query classification, stated assumptions, private company non-fabrication, rate-of-change banners |
+| **Day 11** | Evaluation Framework & LLM-as-Judge | ⏳ Next | 20+ metrics evaluation engine |
 | **Day 12** | Token Usage Analysis & Optimization | 📅 Upcoming | Efficiency benchmarks & optimization logs |
 | **Day 13** | Documentation & Trace Gallery | 📅 Upcoming | Full architectural documentation & trace gallery |
 | **Day 14** | End-to-End Benchmark Run | 📅 Upcoming | Full test suite against all 8 progressive challenges |
