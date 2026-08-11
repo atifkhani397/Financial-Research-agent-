@@ -45,6 +45,8 @@ from memory.episodic import EpisodicMemory
 from agent.error_handler import ErrorHandler, ErrorCategory
 from agent.fallback_chains import FallbackChainManager
 from agent.circuit_breaker import CircuitBreaker
+from agent.query_analyzer import QueryAnalyzer
+from agent.disambiguation import DisambiguationEngine
 
 logger = logging.getLogger("ara1.agent")
 
@@ -148,6 +150,13 @@ class FinancialResearchAgent:
         self.degraded_sections: dict[str, dict] = {}
         self.tool_results_history: list[dict] = []
 
+        # Day 10 Query Analyzer & Disambiguation Engine components
+        self.query_analyzer = QueryAnalyzer()
+        self.disambiguator = DisambiguationEngine()
+        self.query_analysis: dict = {}
+        self.disambiguation_res: dict = {}
+        self.rate_of_change_res: dict | None = None
+
     # ── Public Entry Point ───────────────────────────────────────────
     def run(self, query: str, session_id: str | None = None) -> dict:
         """
@@ -167,9 +176,19 @@ class FinancialResearchAgent:
         self.start_time = time.time()
         self.plan = None
         self.termination_reason = ""
+        self.degraded_sections = {}
+        self.tool_results_history = []
+
+        # Day 10 Query Analysis & Disambiguation Pass
+        self.query_analysis = self.query_analyzer.analyze(query)
+        self.disambiguation_res = self.disambiguator.resolve_query_ambiguity(
+            query=query,
+            ambiguity_level=self.query_analysis.get("ambiguity_level", "LOW"),
+        )
+        self.rate_of_change_res = None
 
         logger.info(f"Starting research task | session={self.session_id}")
-        self._add_trace("PLAN", content=f"User query: {query}")
+        self._add_trace("PLAN", content=f"User query: {query} | {self.query_analysis.get('summary')}")
 
         try:
             # ── Phase 1: Planning ────────────────────────────────────
@@ -619,6 +638,37 @@ class FinancialResearchAgent:
         )
 
         report = response.get("content", "")
+
+        # Check for rate-of-change triggers across gathered data
+        self.rate_of_change_res = self.disambiguator.detect_rate_of_change(all_results)
+
+        # Build Header Disclosures Block
+        header_disclosures = []
+
+        if self.rate_of_change_res and self.rate_of_change_res.get("banner_markdown"):
+            header_disclosures.append(self.rate_of_change_res["banner_markdown"])
+
+        if self.disambiguation_res and self.disambiguation_res.get("disclosure_markdown"):
+            header_disclosures.append(self.disambiguation_res["disclosure_markdown"])
+
+        if self.query_analysis.get("is_private_company_query"):
+            priv_disc = self.disambiguator.format_private_company_disclosure("Target Entity")
+            header_disclosures.append(priv_disc["disclosure_markdown"])
+        elif self.query_analysis.get("is_recent_ipo_query"):
+            ipo_disc = self.disambiguator.format_recent_ipo_disclosure("Target Entity")
+            header_disclosures.append(ipo_disc["disclosure_markdown"])
+
+        if header_disclosures:
+            header_block = "\n".join(header_disclosures) + "\n\n"
+            # Prepend after H1 header if present, or at top
+            if report.startswith("# "):
+                h1_end = report.find("\n")
+                if h1_end != -1:
+                    report = report[:h1_end+1] + "\n" + header_block + report[h1_end+1:]
+                else:
+                    report = header_block + report
+            else:
+                report = header_block + report
 
         # Append graceful degradation warnings if any sections were degraded
         if self.degraded_sections:
