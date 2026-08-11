@@ -40,6 +40,8 @@ from agent.parser import (
     ToolCall,
 )
 from agent.logger import log_tool_call, log_agent_step
+from memory.context_manager import ContextManager
+from memory.episodic import EpisodicMemory
 
 logger = logging.getLogger("ara1.agent")
 
@@ -131,6 +133,10 @@ class FinancialResearchAgent:
         self.plan: dict | None = None
         self.termination_reason: str = ""
 
+        # Three-layer memory components
+        self.context_manager = ContextManager(max_context_tokens=8000, compression_threshold=0.70)
+        self.episodic_memory = EpisodicMemory()
+
     # ── Public Entry Point ───────────────────────────────────────────
     def run(self, query: str, session_id: str | None = None) -> dict:
         """
@@ -176,6 +182,10 @@ class FinancialResearchAgent:
                 step_result = self._execute_step(step, plan_steps)
                 self.step_results.append(step_result)
 
+                # Context window compaction check
+                if self.context_manager.should_compact(self.trace):
+                    self.trace = self.context_manager.compact_trace(self.trace)
+
                 # Check if step result triggers plan revision
                 if step_result.status == "revision_needed":
                     revised = self._revise_plan(step_result)
@@ -196,6 +206,23 @@ class FinancialResearchAgent:
             report = self._build_partial_report(f"Error during execution: {str(e)}")
 
         elapsed = time.time() - self.start_time
+
+        # Log episode to Episodic Memory
+        try:
+            tools_used = [getattr(t, "tool_name", "") for t in self.trace if getattr(t, "tool_name", "")]
+            tools_succeeded = [t for t in tools_used if t]
+            self.episodic_memory.log_episode(
+                session_id=self.session_id,
+                query=query,
+                tools_used=tools_used,
+                tools_succeeded=tools_succeeded,
+                tools_failed=[],
+                strategy_note=f"Completed research task with {len(self.step_results)} steps",
+                success=(self.termination_reason == TerminationReason.COMPLETED),
+            )
+        except Exception as ep_err:
+            logger.warning(f"Failed to log episode: {ep_err}")
+
         logger.info(
             f"Research task complete | session={self.session_id} "
             f"| reason={self.termination_reason} "

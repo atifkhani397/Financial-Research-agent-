@@ -1,6 +1,6 @@
 {
     "name": "vector_db_search",
-    "description": "Searches the agent's long-term memory for previously chunked and stored findings. Use this to recall context from earlier in the session or past sessions.",
+    "description": "Searches the agent's long-term vector memory for previously chunked and stored findings. Use this to recall context from earlier sessions or existing company research.",
     "parameters": {
         "type": "object",
         "properties": {
@@ -12,6 +12,22 @@
                 "type": "integer",
                 "default": 5,
                 "description": "Number of results to return."
+            },
+            "ticker": {
+                "type": "string",
+                "description": "Optional ticker filter (e.g., MSFT)."
+            },
+            "source_type": {
+                "type": "string",
+                "description": "Optional source type filter (e.g., SEC_10K, NEWS, EARNINGS_TRANSCRIPT)."
+            },
+            "date_start": {
+                "type": "string",
+                "description": "Optional start date filter (YYYY-MM-DD)."
+            },
+            "date_end": {
+                "type": "string",
+                "description": "Optional end date filter (YYYY-MM-DD)."
             }
         },
         "required": [
