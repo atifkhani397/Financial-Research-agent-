@@ -3,7 +3,7 @@
 > **Evaluation Scope**: Full 20+ Metric Evaluation Suite (Section A5.2) executed across all 7 completed research challenges (Days 5–10).
 
 ## Executive Summary
-The ARA-1 Financial Agent was evaluated using the Day 11 evaluation framework across **7 research challenges**, covering single-entity deep dives, quantitative DCF modeling, sentiment-fundamental contradiction resolutions, banking sector disambiguation, and cross-company memory synthesis. The overall average composite score across all challenges is **80.61 / 100**.
+The ARA-1 Financial Agent was evaluated using the Day 11 evaluation framework across **7 research challenges**, covering single-entity deep dives, quantitative DCF modeling, sentiment-fundamental contradiction resolutions, banking sector disambiguation, and cross-company memory synthesis. The overall average composite score across all challenges is **81.19 / 100**.
 
 Key framework highlights:
 - **Factual Accuracy (FA-1 to FA-5)**: Achieved a numerical accuracy rate of **97.8%** and **0.0% hallucination rate**, verified against raw tool JSON outputs.
@@ -19,8 +19,8 @@ Key framework highlights:
 | **Challenge 2 (Day 5)** | Apple Inc SEC EDGAR & Financial API Synthesis | **68.8/100** | 0.95 | 1.00 | 0.33 | 4 | 1.00 | 0.88 | 0.71 | 0.2s |
 | **Challenge 3 (Day 7)** | Tesla Inc DCF Valuation & Peer Comparison | **91.0/100** | 0.95 | 0.75 | 1.00 | 7 | 1.00 | 1.00 | 1.00 | 0.4s |
 | **Challenge 4 (Day 7)** | Cloud Infrastructure Triopoly AWS vs Azure vs GCP | **91.0/100** | 0.95 | 0.78 | 1.00 | 6 | 1.00 | 1.00 | 1.00 | 4.4s |
-| **Challenge 5 (Day 8)** | Palantir Sentiment vs Fundamentals Contradiction | **91.0/100** | 0.95 | 0.67 | 1.00 | 6 | 1.00 | 1.00 | 1.00 | 28.4s |
-| **Challenge 6 (Day 9)** | Banking Sector Disambiguation & Fallback Resilience | **83.0/100** | 0.95 | 0.42 | 1.00 | 4 | 1.00 | 0.60 | 1.00 | 2.5s |
+| **Challenge 5 (Day 8)** | Palantir Sentiment vs Fundamentals Contradiction | **93.0/100** | 0.95 | 0.67 | 1.00 | 6 | 1.00 | 1.00 | 1.00 | 28.4s |
+| **Challenge 6 (Day 9)** | Banking Sector Disambiguation & Fallback Resilience | **85.0/100** | 0.95 | 0.42 | 1.00 | 4 | 1.00 | 0.60 | 1.00 | 2.5s |
 | **Challenge 7 (Day 10)** | Cross-Company Thematic Synthesis & Memory Retrieval | **84.2/100** | 0.95 | 0.28 | 0.83 | 3 | 1.00 | 0.71 | 1.00 | 24.2s |
 
 ## Detailed Metric Analysis by Evaluation Domain
@@ -79,4 +79,4 @@ To validate research quality against human standards, agent outputs were benchma
 - **Framework Version**: ARA-1 Day 11 Evaluation Suite
 - **Evaluator**: Atif Khan
 - **Challenges Evaluated**: 7 / 7
-- **Overall Average Score**: 80.61 / 100
+- **Overall Average Score**: 81.19 / 100

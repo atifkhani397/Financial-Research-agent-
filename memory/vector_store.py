@@ -19,9 +19,21 @@ import uuid
 import logging
 from typing import Optional, Union, Dict, Any, List
 
-import chromadb
-from chromadb.config import Settings as ChromaSettings
-from sentence_transformers import SentenceTransformer
+try:
+    import chromadb
+    from chromadb.config import Settings as ChromaSettings
+    CHROMADB_AVAILABLE = True
+except ImportError:
+    chromadb = None
+    ChromaSettings = None
+    CHROMADB_AVAILABLE = False
+
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SentenceTransformer = None
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
 
 from config import get_settings
 
@@ -176,23 +188,29 @@ class VectorStore:
         settings = get_settings()
         self.persist_dir = settings.chroma_persist_dir
         self.embedding_model_name = settings.embedding_model
+        self.fallback_docs: List[Dict[str, Any]] = []
 
-        # Initialize Chroma client with persistence
-        self.client = chromadb.PersistentClient(
-            path=self.persist_dir,
-            settings=ChromaSettings(anonymized_telemetry=False),
-        )
+        if CHROMADB_AVAILABLE:
+            # Initialize Chroma client with persistence
+            self.client = chromadb.PersistentClient(
+                path=self.persist_dir,
+                settings=ChromaSettings(anonymized_telemetry=False),
+            )
+            self.collection = self.client.get_or_create_collection(
+                name=collection_name,
+                metadata={"hnsw:space": "cosine"},
+            )
+        else:
+            self.client = None
+            self.collection = None
+            logger.warning("chromadb not installed. Operating in lightweight in-memory fallback mode.")
 
-        # Get or create the collection
-        self.collection = self.client.get_or_create_collection(
-            name=collection_name,
-            metadata={"hnsw:space": "cosine"},
-        )
-
-        # Load embedding model (CPU-only, local)
-        logger.info(f"Loading embedding model: {self.embedding_model_name}")
-        self.embedder = SentenceTransformer(self.embedding_model_name)
-        logger.info("Embedding model loaded successfully.")
+        if SENTENCE_TRANSFORMERS_AVAILABLE:
+            logger.info(f"Loading embedding model: {self.embedding_model_name}")
+            self.embedder = SentenceTransformer(self.embedding_model_name)
+        else:
+            self.embedder = None
+            logger.warning("sentence_transformers not installed. Operating in text-based fallback mode.")
 
     def store(
         self,
@@ -212,8 +230,6 @@ class VectorStore:
             The document ID.
         """
         doc_id = doc_id or str(uuid.uuid4())
-        embedding = self.embedder.encode(content).tolist()
-
         metadata = {
             "ticker": str(ticker or ""),
             "source_type": str(source_type or ""),
@@ -223,12 +239,20 @@ class VectorStore:
             "verified": bool(verified),
         }
 
-        self.collection.upsert(
-            ids=[doc_id],
-            embeddings=[embedding],
-            documents=[content],
-            metadatas=[metadata],
-        )
+        if self.collection and self.embedder:
+            embedding = self.embedder.encode(content).tolist()
+            self.collection.upsert(
+                ids=[doc_id],
+                embeddings=[embedding],
+                documents=[content],
+                metadatas=[metadata],
+            )
+        else:
+            self.fallback_docs.append({
+                "id": doc_id,
+                "content": content,
+                "metadata": metadata,
+            })
 
         logger.info(f"Stored document id={doc_id} ticker={ticker} source={source_type}")
         return doc_id
@@ -258,8 +282,6 @@ class VectorStore:
             raw_data_str = str(financial_data)
 
         doc_id = str(uuid.uuid4())
-        embedding = self.embedder.encode(summary_content).tolist()
-
         metadata = {
             "ticker": str(ticker),
             "source_type": str(source_type),
@@ -271,12 +293,20 @@ class VectorStore:
             "financial_data": raw_data_str[:4000],
         }
 
-        self.collection.upsert(
-            ids=[doc_id],
-            embeddings=[embedding],
-            documents=[summary_content],
-            metadatas=[metadata],
-        )
+        if self.collection and self.embedder:
+            embedding = self.embedder.encode(summary_content).tolist()
+            self.collection.upsert(
+                ids=[doc_id],
+                embeddings=[embedding],
+                documents=[summary_content],
+                metadatas=[metadata],
+            )
+        else:
+            self.fallback_docs.append({
+                "id": doc_id,
+                "content": summary_content,
+                "metadata": metadata,
+            })
 
         logger.info(f"Stored financial statement id={doc_id} ticker={ticker}")
         return doc_id
@@ -294,9 +324,6 @@ class VectorStore:
     ) -> List[str]:
         """
         Structural chunking + bulk embedding and storage.
-
-        Returns:
-            List of stored document IDs.
         """
         chunks = chunk_text(content, source_type=source_type, headline=headline)
         if not chunks:
@@ -332,66 +359,81 @@ class VectorStore:
     ) -> List[dict]:
         """
         Semantic search against stored findings with metadata filtering.
-
-        Returns:
-            List of dicts with keys: id, content, metadata, distance
         """
-        query_embedding = self.embedder.encode(query).tolist()
+        if self.collection and self.embedder:
+            query_embedding = self.embedder.encode(query).tolist()
+            filters = []
+            if where_filter:
+                filters.append(where_filter)
+            if ticker:
+                filters.append({"ticker": {"$eq": ticker}})
+            if source_type:
+                filters.append({"source_type": {"$eq": source_type}})
 
-        # Build composite where filter for Chroma ($eq on ticker, source_type)
-        filters = []
-        if where_filter:
-            filters.append(where_filter)
-        if ticker:
-            filters.append({"ticker": {"$eq": ticker}})
-        if source_type:
-            filters.append({"source_type": {"$eq": source_type}})
+            final_where = None
+            if len(filters) == 1:
+                final_where = filters[0]
+            elif len(filters) > 1:
+                final_where = {"$and": filters}
 
-        final_where = None
-        if len(filters) == 1:
-            final_where = filters[0]
-        elif len(filters) > 1:
-            final_where = {"$and": filters}
+            fetch_k = top_k * 3 if (date_start or date_end) else top_k
 
-        fetch_k = top_k * 3 if (date_start or date_end) else top_k
+            kwargs = {
+                "query_embeddings": [query_embedding],
+                "n_results": min(fetch_k, self.collection.count()) if self.collection.count() > 0 else fetch_k,
+            }
+            if final_where:
+                kwargs["where"] = final_where
 
-        kwargs = {
-            "query_embeddings": [query_embedding],
-            "n_results": min(fetch_k, self.collection.count()) if self.collection.count() > 0 else fetch_k,
-        }
-        if final_where:
-            kwargs["where"] = final_where
+            results = self.collection.query(**kwargs)
 
-        results = self.collection.query(**kwargs)
+            output = []
+            if results and results["ids"] and results["ids"][0]:
+                for i, doc_id in enumerate(results["ids"][0]):
+                    meta = results["metadatas"][0][i] if results["metadatas"] else {}
+                    doc_date = meta.get("date", "")
 
-        output = []
-        if results and results["ids"] and results["ids"][0]:
-            for i, doc_id in enumerate(results["ids"][0]):
-                meta = results["metadatas"][0][i] if results["metadatas"] else {}
-                doc_date = meta.get("date", "")
+                    if date_start and doc_date and doc_date < date_start:
+                        continue
+                    if date_end and doc_date and doc_date > date_end:
+                        continue
 
-                if date_start and doc_date and doc_date < date_start:
+                    output.append({
+                        "id": doc_id,
+                        "content": results["documents"][0][i] if results["documents"] else "",
+                        "metadata": meta,
+                        "distance": results["distances"][0][i] if results["distances"] else None,
+                    })
+                    if len(output) >= top_k:
+                        break
+
+            logger.info(f"Vector search returned {len(output)} results for query='{query[:50]}...'")
+            return output
+        else:
+            # Fallback text search
+            output = []
+            q_lower = query.lower()
+            for doc in self.fallback_docs:
+                meta = doc["metadata"]
+                if ticker and meta.get("ticker") != ticker:
                     continue
-                if date_end and doc_date and doc_date > date_end:
+                if source_type and meta.get("source_type") != source_type:
                     continue
-
-                output.append({
-                    "id": doc_id,
-                    "content": results["documents"][0][i] if results["documents"] else "",
-                    "metadata": meta,
-                    "distance": results["distances"][0][i] if results["distances"] else None,
-                })
+                if q_lower in doc["content"].lower():
+                    output.append(doc)
                 if len(output) >= top_k:
                     break
-
-        logger.info(f"Vector search returned {len(output)} results for query='{query[:50]}...'")
-        return output
+            return output
 
     def count(self) -> int:
         """Return the number of documents in the collection."""
-        return self.collection.count()
+        if self.collection:
+            return self.collection.count()
+        return len(self.fallback_docs)
 
     def delete_collection(self):
         """Delete the entire collection (for testing/reset)."""
-        self.client.delete_collection(self.collection.name)
-        logger.warning("Collection deleted.")
+        if self.client and self.collection:
+            self.client.delete_collection(self.collection.name)
+        self.fallback_docs = []
+        logger.warning("Collection reset.")

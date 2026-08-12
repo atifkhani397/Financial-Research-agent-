@@ -29,9 +29,9 @@ class Settings:
         self.groq_api_key: str = self._require("GROQ_API_KEY")
 
         # --- Groq Model IDs (configurable, not hardcoded in agent logic) ---
-        self.planning_model: str = os.getenv("GROQ_PLANNING_MODEL", "qwen/qwen3-32b")
-        self.fast_model: str = os.getenv("GROQ_FAST_MODEL", "openai/gpt-oss-20b")
-        self.judge_model: str = os.getenv("GROQ_JUDGE_MODEL", "openai/gpt-oss-120b")
+        self.planning_model: str = os.getenv("GROQ_PLANNING_MODEL", "llama-3.3-70b-versatile")
+        self.fast_model: str = os.getenv("GROQ_FAST_MODEL", "llama-3.1-8b-instant")
+        self.judge_model: str = os.getenv("GROQ_JUDGE_MODEL", "mixtral-8x7b-32768")
 
         # --- Groq Rate Limits ---
         self.groq_rpm: int = int(os.getenv("GROQ_REQUESTS_PER_MINUTE", "30"))

@@ -99,8 +99,8 @@ class LLMWrapper:
 
     @retry(
         retry=retry_if_exception_type(RateLimitError),
-        wait=wait_exponential_jitter(initial=1, max=32, jitter=2),
-        stop=stop_after_attempt(5),
+        wait=wait_exponential_jitter(initial=3, max=90, jitter=3),
+        stop=stop_after_attempt(15),
         before_sleep=before_sleep_log(logger, logging.WARNING),
     )
     def invoke(

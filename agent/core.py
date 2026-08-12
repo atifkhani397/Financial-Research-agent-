@@ -59,7 +59,8 @@ class AgentConfig:
     max_plan_steps: int = 15          # Max steps the planner can produce
     max_react_cycles: int = 3         # Max Thought→Action→Observation per step
     max_wall_clock_seconds: int = 300 # 5-minute wall-clock timeout
-    simulate_tool_failure_rate: float = 0.0  # Debug flag for simulated tool failure stress testing
+    simulate_tool_failure_rate: float = 0.0  # Global debug flag for simulated tool failure
+    tool_failure_rates: dict = field(default_factory=dict)  # Per-tool failure rates, e.g. {"financial_data_api": 0.5, "sec_filing_search": 0.5}
     planning_model_role: str = "planning"
     executor_model_role: str = "fast"
     synthesis_model_role: str = "planning"
@@ -465,9 +466,10 @@ class FinancialResearchAgent:
                         error = None if fb_success else "Circuit Breaker OPEN & Fallbacks Exhausted"
                     else:
                         # 2. Execute Primary Tool with Retry Handler
+                        failure_rate_arg = self.config.tool_failure_rates or self.config.simulate_tool_failure_rate
                         def _tool_fn():
                             return self.registry.execute_tool(
-                                tool_name, tool_args, simulate_failure_rate=self.config.simulate_tool_failure_rate
+                                tool_name, tool_args, simulate_failure_rate=failure_rate_arg
                             )
 
                         success, result, err_category = self.error_handler.execute_with_retry(

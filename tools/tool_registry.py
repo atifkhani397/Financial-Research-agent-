@@ -51,8 +51,14 @@ class ToolRegistry:
         except ValidationError as e:
             raise InputValidationError(f"Input validation failed for {tool_name}: {e.message}")
 
-        if simulate_failure_rate > 0.0 and random.random() < simulate_failure_rate:
-            logger.warning(f"[SIMULATED FAILURE INJECTED] Primary tool '{tool_name}' failed (Simulated 500 API Error).")
+        failure_rate = 0.0
+        if isinstance(simulate_failure_rate, dict):
+            failure_rate = simulate_failure_rate.get(tool_name, 0.0)
+        elif isinstance(simulate_failure_rate, (int, float)):
+            failure_rate = float(simulate_failure_rate)
+
+        if failure_rate > 0.0 and random.random() < failure_rate:
+            logger.warning(f"[SIMULATED FAILURE INJECTED] Primary tool '{tool_name}' failed (Simulated 500 API Error, rate={failure_rate}).")
             return {
                 "error": f"Simulated 500 API Error for primary tool '{tool_name}'",
                 "_simulated_failure": True,
