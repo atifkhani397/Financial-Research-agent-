@@ -14,7 +14,8 @@ export function useWebSocketTrace(sessionId: string | null) {
       return;
     }
 
-    const wsUrl = `ws://localhost:8000/ws/research/${sessionId}`;
+    const wsBase = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
+    const wsUrl = `${wsBase}/ws/research/${sessionId}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 

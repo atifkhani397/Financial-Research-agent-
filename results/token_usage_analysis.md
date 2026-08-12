@@ -4,10 +4,10 @@
 
 ## Overall Token Consumption Summary
 
-- **Total LLM Calls**: `21`
-- **Total Prompt Tokens**: `67,670`
-- **Total Completion Tokens**: `3,796`
-- **Cumulative Token Count**: `71,466`
+- **Total LLM Calls**: `17`
+- **Total Prompt Tokens**: `60,221`
+- **Total Completion Tokens**: `2,662`
+- **Cumulative Token Count**: `62,883`
 
 ### Consumption Breakdown by Groq Model Role
 

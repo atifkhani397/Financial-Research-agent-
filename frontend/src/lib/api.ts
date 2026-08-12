@@ -3,7 +3,7 @@
  * Connects to Day 16 FastAPI backend server at http://localhost:8000
  */
 
-const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export interface ChallengeItem {
   challenge_id: number;
