@@ -25,8 +25,9 @@
 | **Day 12** | Challenge 8 & System Stress Testing | ✅ Complete | Challenge 8 NVDA 50% failure report (`results/challenge_8.md`), 3 stress tests (`results/stress_test_report.md`), token usage analysis |
 | **Day 13** | Measurable Optimization & Evaluation V2 | ✅ Complete | +8.76 pt score gain, 32.0% token reduction, +21.1% memory utilization (`docs/optimization_log.md`, `results/evaluation_report_v2.md`) |
 | **Day 14** | Final Documentation & Trace Gallery | ✅ Complete | `docs/architecture_specification_final.md`, `docs/trace_gallery.md`, `docs/evaluation_report_final.md`, `ERROR_LOG.md` |
-| **Day 15** | Code Cleanup & Final Audit | 📅 Upcoming | Final repository audit and release |
-| **Days 16–18** | Additive Web Layer | 📅 Upcoming | FastAPI backend (`api/`) & React 18 / Vite / Tailwind UI (`frontend/`) |
+| **Day 15** | Code Cleanup & Final Audit | ✅ Complete | `.zetheta-project.json`, `docs/demo_video_script.md`, repo layout verification |
+| **Day 16** | FastAPI Layer Over Agent Engine | ✅ Complete | REST & WebSocket API (`api/main.py`, `api/routes/`, `api/schemas.py`, `api/websocket.py`, `tests/test_api.py`) |
+| **Days 17–18** | Additive Web Layer (React Frontend) | 📅 Upcoming | React 18 / Vite / Tailwind UI (`frontend/`) |
 
 ---
 
@@ -75,7 +76,7 @@ python -m pip install -r requirements.txt
 
 | API Key / Setting | Mandatory? | Free Tier Available? | Acquisition URL & Registration Instructions |
 | :--- | :---: | :---: | :--- |
-| `GROQ_API_KEY` | **Yes** | **Yes** (Free) | Register at [console.groq.com](https://console.groq.com). Create an API key under **API Keys**. Powers planning, execution, synthesis, and judge passes. |
+| `GROQ_API_KEY` | **Yes** | **Yes** (Free) | Register at [consolegroq.com](https://console.groq.com). Create an API key under **API Keys**. Powers planning, execution, synthesis, and judge passes. |
 | `SEC_EDGAR_USER_AGENT` | **Yes** | **Yes** (Free) | SEC EDGAR requires a custom User-Agent header (format: `CompanyName AdminEmail`, e.g. `QuantumEdge Research admin@quantumedge.com`). No API key needed. |
 | `FMP_API_KEY` | Optional | **Yes** (Free) | Register at [financialmodelingprep.com/developer](https://financialmodelingprep.com/developer). Free tier provides company profiles, income statements, balance sheets. |
 | `TAVILY_API_KEY` | Optional | **Yes** (Free) | Register at [tavily.com](https://tavily.com). Free tier provides 1,000 search queries/month for web search fallbacks. |
@@ -99,10 +100,9 @@ NEWS_API_KEY=your_news_key_here
 
 ---
 
-## ⚡ Quick-Start Example Query
+## ⚡ Quick-Start Execution
 
-Run an autonomous research task using python:
-
+### Option A: Run via Python CLI
 ```python
 from agent.core import FinancialResearchAgent
 from agent.llm import get_llm
@@ -123,17 +123,16 @@ result = agent.run(query=query, session_id="demo-session-nvda")
 print(result["report"])
 ```
 
-Or execute evaluation & stress test suites directly from CLI:
-
+### Option B: Launch FastAPI Server & Run API Smoke Tests (Day 16)
 ```bash
-# Day 11 Full 20+ Metric Evaluation Suite
-python run_day11_evaluation.py
+# Launch FastAPI Backend Server (http://localhost:8000)
+uvicorn api.main:app --reload --port 8000
 
-# Day 12 Challenge 8 & Stress Tests
-python run_day12_challenges_and_stress_tests.py
+# Execute full API REST & WebSocket Smoke Test Suite
+python scripts/api_smoke_test.py
 
-# Day 13 Measurable Optimization Evaluation V2
-python run_day13_evaluation.py
+# Run Pytest API & Core Test Suite
+pytest tests/ -v
 ```
 
 ---
@@ -174,12 +173,14 @@ In compliance with **Section E5.3 of the Zetheta Algorithms Project Brief**, bel
 
 ```text
 ├── agent/          # Core agent logic (reasoning loop, LLM wrapper, prompts, parser)
+├── api/            # FastAPI REST & WebSocket web layer (main.py, schemas.py, routes/)
 ├── tools/          # 12 live tool implementations & JSON schemas
 ├── memory/         # Vector store (Chroma), context manager, episodic memory
 ├── synthesis/      # Multi-source synthesis and conflict resolution
 ├── evaluation/     # Metrics framework, benchmarks, dashboard
 ├── config/         # Environment and model configuration
-├── tests/          # Unit and integration test suite
+├── scripts/        # Utility and API smoke test scripts (api_smoke_test.py)
+├── tests/          # Unit and integration test suite (test_memory.py, test_tools.py, test_api.py)
 ├── results/        # Generated reports (challenge_1.md ... challenge_8.md, evaluation_report_v2.md)
 └── docs/           # Architecture spec, trace gallery, optimization log, evaluation_report_final.md
 ```
