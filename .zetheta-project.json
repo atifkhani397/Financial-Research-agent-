@@ -1,0 +1,35 @@
+{
+  "project_name": "ARA-1 Autonomous Financial Research Agent",
+  "candidate": {
+    "name": "Atif Khan",
+    "email": "atif.khan@example.com",
+    "university_id": "FA24-BSE-011",
+    "university": "COMSATS University Islamabad",
+    "oauth_id": "atifkhani397"
+  },
+  "submission": {
+    "track": "Project 1A - Financial Agent",
+    "repository_url": "https://github.com/ZethetaIntern/ARA1-Financial-Agent-AtifKhan",
+    "completion_date": "2026-08-12"
+  },
+  "tech_stack": [
+    "Python 3.11",
+    "LangChain / ChatGroq",
+    "Groq Cloud API (llama-3.3-70b-versatile, llama-3.1-8b-instant)",
+    "ChromaDB Vector Store",
+    "SentenceTransformers (all-MiniLM-L6-v2)",
+    "SEC EDGAR API",
+    "Financial Modeling Prep (FMP) API",
+    "Tavily Web Search API",
+    "NewsAPI",
+    "Tenacity Retry & Circuit Breakers",
+    "Pytest",
+    "TailwindCSS (HTML Evaluation Dashboard)"
+  ],
+  "architecture": {
+    "pattern": "Plan-and-Execute with Bounded ReAct Inner Loop",
+    "memory": "3-Layer (ContextManager 70% compaction, ChromaDB Vector Store 800-900ch, Episodic Log)",
+    "tool_count": 12,
+    "source_reliability_tiers": 5
+  }
+}
