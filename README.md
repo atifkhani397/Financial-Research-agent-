@@ -26,23 +26,83 @@
 | **Day 13** | Measurable Optimization & Evaluation V2 | ✅ Complete | +8.76 pt score gain, 32.0% token reduction, +21.1% memory utilization (`docs/optimization_log.md`, `results/evaluation_report_v2.md`) |
 | **Day 14** | Final Documentation & Trace Gallery | ✅ Complete | `docs/architecture_specification_final.md`, `docs/trace_gallery.md`, `docs/evaluation_report_final.md`, `ERROR_LOG.md` |
 | **Day 15** | Code Cleanup & Final Audit | ✅ Complete | `.zetheta-project.json`, `docs/demo_video_script.md`, repo layout verification |
-| **Day 16** | FastAPI Layer Over Agent Engine | ✅ Complete | REST & WebSocket API (`api/main.py`, `api/routes/`, `api/schemas.py`, `api/websocket.py`, `tests/test_api.py`) |
+| **Day 16** | FastAPI Service Layer Over Agent Engine | ✅ Complete | REST & WebSocket API (`api/main.py`, `api/routes/`, `api/schemas.py`, `api/websocket.py`, `tests/test_api.py`) |
 | **Day 17** | Modern React 18 Frontend UI | ✅ Complete | React 18 / Vite / Tailwind UI (`frontend/`, `QueryConsolePage`, `LiveTraceView`, `ReportViewerPage`, `ToolRegistryPage`, `MemoryExplorerPage`, `EvaluationDashboardPage`, `TraceGalleryPage`) |
-| **Day 18** | Web Layer Audit & Final Polish | 📅 Upcoming | Web layer integration audit and full-stack release |
+| **Day 18** | Full-Stack Integration Audit & Release | ✅ Complete | Web layer integration audit, full test suite validation, full release packaging |
 
 ---
 
-## 🚀 Overview & Key Features
+## 🚀 Overview & Key Architectural Layers
 
-ARA-1 receives a natural language financial research query, autonomously plans a multi-step roadmap, calls tools across SEC EDGAR, financial data APIs, earnings call transcripts, news/web search, and its own 3-layer vector memory, resolves conflicting data via a 5-tier source reliability hierarchy, and produces a structured, cited investment research report with DCF valuation models.
+ARA-1 receives a natural language financial research query, autonomously plans a multi-step roadmap, calls tools across SEC EDGAR, financial data APIs, earnings call transcripts, news/web search, and its own 3-layer vector memory, resolves conflicting data via a 5-tier source reliability hierarchy, and produces structured, cited investment research reports with DCF valuation models.
+
+### Key Production Architecture:
+
+```
+                      ┌─────────────────────────────────────────┐
+                      │            User Research Query           │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │  Query Analyzer (Disambiguation & Type)  │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │    Planner LLM (llama-3.3-70b-versatile) │
+                      │  Creates Multi-Step Execution Plan JSON │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+            ┌───────────────────────────────────────────────────────────┐
+            │               Step Execution Loop (ReAct Inner)            │
+            │               Fast LLM (llama-3.1-8b-instant)             │
+            │                                                           │
+            │  THOUGHT ──► ACTION (Tool Call) ──► CIRCUIT BREAKER /      │
+            │                                     FALLBACK CHAIN         │
+            │                                            │              │
+            │  STEP_COMPLETE ◄── OBSERVATION ◄───────────┘              │
+            └──────────────────────────────┬────────────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │ Multi-Source Synthesis & Fact Checker   │
+                      │  5-Tier Source Reliability Hierarchy    │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                      ┌─────────────────────────────────────────┐
+                      │ Final Report Generator (Cited Markdown) │
+                      │  Section A8.2 Stage 4 Token Budgeting   │
+                      └────────────────────┬────────────────────┘
+                                           │
+                                           ▼
+            ┌───────────────────────────────────────────────────────────┐
+            │                     ADDITIVE WEB LAYER                    │
+            │                                                           │
+            │  FastAPI Server (8000)  ◄──►  React 18 / Vite UI (5173)   │
+            │  REST + WebSockets            TanStack Query + Tailwind   │
+            └───────────────────────────────────────────────────────────┘
+```
+
+1. **Agent Pattern:** Plan-and-Execute global strategy with a bounded ReAct inner loop per step.
+2. **LLM Engine:** Groq API (`llama-3.3-70b-versatile` for planning/synthesis; `llama-3.1-8b-instant` for fast execution; `llama-3.3-70b-versatile` for LLM-as-Judge).
+3. **Three-Layer Memory Architecture:**
+   - **Short-Term Memory:** Live context manager tracking token usage with 70% threshold trace compaction.
+   - **Long-Term Memory:** Local ChromaDB with structural chunking (SEC Filings by Item, Transcripts by speaker-turn, News by paragraph carrying headline context, Financial Statements as metadata).
+   - **Episodic Memory:** Task episode strategy log for past strategy recall.
+4. **12 Live Tools:** `sec_filing_search`, `financial_data_api`, `earnings_transcript`, `news_sentiment`, `web_search`, `vector_db_search`, `vector_db_store`, `company_profile`, `peer_comparison`, `calculation_engine` (with DCF model), `fact_checker`, `report_generator`.
+5. **Web Layer:** FastAPI service (`api/`) with REST & WebSockets + React 18 / Vite / Tailwind UI (`frontend/`).
 
 ---
 
-## 💻 Complete Setup Instructions
+## 💻 Full-Stack Quick-Start & Installation
 
 ### 1. System Requirements
 - **OS**: Windows, macOS, or Linux
 - **Python**: Version 3.10, 3.11, or 3.12 recommended
+- **Node.js**: Version 18+ or 20+
 - **Hardware**: CPU-only supported (16GB RAM recommended; no local GPU required)
 
 ### 2. Clone the Repository
@@ -52,7 +112,7 @@ git clone https://github.com/atifkhani397/Financial-Research-agent-.git
 cd Financial-Research-agent-
 ```
 
-### 3. Create & Activate Virtual Environment
+### 3. Setup Python Backend Environment
 
 ```bash
 # Windows (PowerShell)
@@ -62,26 +122,13 @@ py -3.11 -m venv .venv
 # macOS/Linux
 python3 -m venv .venv
 source .venv/bin/activate
-```
 
-### 4. Install Dependencies
-
-```bash
+# Install dependencies
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
----
-
-## 🔑 Required API Keys & Acquisition Guide
-
-| API Key / Setting | Mandatory? | Free Tier Available? | Acquisition URL & Registration Instructions |
-| :--- | :---: | :---: | :--- |
-| `GROQ_API_KEY` | **Yes** | **Yes** (Free) | Register at [consolegroq.com](https://console.groq.com). Create an API key under **API Keys**. Powers planning, execution, synthesis, and judge passes. |
-| `SEC_EDGAR_USER_AGENT` | **Yes** | **Yes** (Free) | SEC EDGAR requires a custom User-Agent header (format: `CompanyName AdminEmail`, e.g. `QuantumEdge Research admin@quantumedge.com`). No API key needed. |
-| `FMP_API_KEY` | Optional | **Yes** (Free) | Register at [financialmodelingprep.com/developer](https://financialmodelingprep.com/developer). Free tier provides company profiles, income statements, balance sheets. |
-| `TAVILY_API_KEY` | Optional | **Yes** (Free) | Register at [tavily.com](https://tavily.com). Free tier provides 1,000 search queries/month for web search fallbacks. |
-| `NEWS_API_KEY` | Optional | **Yes** (Free) | Register at [newsapi.org](https://newsapi.org). Free tier provides 100 requests/day for news sentiment aggregation. |
+### 4. Setup Environment Variables
 
 Create `.env` in the root directory:
 
@@ -99,42 +146,33 @@ TAVILY_API_KEY=tvly-your_tavily_key_here
 NEWS_API_KEY=your_news_key_here
 ```
 
+### 5. Launch FastAPI Backend Server
+
+```bash
+# Serves REST API endpoints & WebSockets at http://localhost:8000
+uvicorn api.main:app --reload --port 8000
+```
+
+### 6. Launch React Frontend Application
+
+```bash
+# In a new terminal tab
+cd frontend
+npm run dev
+# Opens web app UI at http://localhost:5173
+```
+
 ---
 
-## ⚡ Quick-Start Execution
+## 🔑 Required API Keys & Acquisition Guide
 
-### Option A: Run via Python CLI
-```python
-from agent.core import FinancialResearchAgent
-from agent.llm import get_llm
-from tools.tool_registry import ToolRegistry
-
-# Initialize LLM wrapper and tool registry
-llm = get_llm()
-registry = ToolRegistry()
-
-# Initialize agent instance
-agent = FinancialResearchAgent(llm_wrapper=llm, tool_registry=registry)
-
-# Run autonomous research task
-query = "Produce a complete investment research report on NVIDIA Corporation (NVDA)."
-result = agent.run(query=query, session_id="demo-session-nvda")
-
-# Output generated publication-grade report
-print(result["report"])
-```
-
-### Option B: Launch FastAPI Server & Run API Smoke Tests (Day 16)
-```bash
-# Launch FastAPI Backend Server (http://localhost:8000)
-uvicorn api.main:app --reload --port 8000
-
-# Execute full API REST & WebSocket Smoke Test Suite
-python scripts/api_smoke_test.py
-
-# Run Pytest API & Core Test Suite
-pytest tests/ -v
-```
+| API Key / Setting | Mandatory? | Free Tier Available? | Acquisition URL & Registration Instructions |
+| :--- | :---: | :---: | :--- |
+| `GROQ_API_KEY` | **Yes** | **Yes** (Free) | Register at [console.groq.com](https://console.groq.com). Create an API key under **API Keys**. Powers planning, execution, synthesis, and judge passes. |
+| `SEC_EDGAR_USER_AGENT` | **Yes** | **Yes** (Free) | SEC EDGAR requires a custom User-Agent header (format: `CompanyName AdminEmail`, e.g. `QuantumEdge Research admin@quantumedge.com`). No API key needed. |
+| `FMP_API_KEY` | Optional | **Yes** (Free) | Register at [financialmodelingprep.com/developer](https://financialmodelingprep.com/developer). Free tier provides company profiles, income statements, balance sheets. |
+| `TAVILY_API_KEY` | Optional | **Yes** (Free) | Register at [tavily.com](https://tavily.com). Free tier provides 1,000 search queries/month for web search fallbacks. |
+| `NEWS_API_KEY` | Optional | **Yes** (Free) | Register at [newsapi.org](https://newsapi.org). Free tier provides 100 requests/day for news sentiment aggregation. |
 
 ---
 
@@ -158,7 +196,7 @@ In compliance with **Section E5.3 of the Zetheta Algorithms Project Brief**, bel
 
 1. **Antigravity AI (Google DeepMind)**:
    - **Usage**: Primary agentic pair programming assistant.
-   - **Specific Tasks**: Architected the hybrid Plan-and-Execute reasoning engine, wrote Tenacity retry wrappers, developed vector store chunking logic (`memory/vector_store.py`), created 20+ metric evaluation scripts (`run_day11_evaluation.py`, `run_day13_evaluation.py`), and formatted markdown artifacts.
+   - **Specific Tasks**: Architected the hybrid Plan-and-Execute reasoning engine, wrote Tenacity retry wrappers, developed vector store chunking logic (`memory/vector_store.py`), created 20+ metric evaluation scripts (`run_day11_evaluation.py`, `run_day13_evaluation.py`), formatted markdown artifacts, and scaffolded the FastAPI + React web layer.
 
 2. **Groq Cloud API Models (`llama-3.3-70b-versatile` & `llama-3.1-8b-instant`)**:
    - **Usage**: Runtime LLM inference engine powering the agent at runtime.
@@ -170,20 +208,25 @@ In compliance with **Section E5.3 of the Zetheta Algorithms Project Brief**, bel
 
 ---
 
-## 📂 Project Structure
+## 📂 Full Repository Structure
 
 ```text
-├── agent/          # Core agent logic (reasoning loop, LLM wrapper, prompts, parser)
-├── api/            # FastAPI REST & WebSocket web layer (main.py, schemas.py, routes/)
-├── tools/          # 12 live tool implementations & JSON schemas
-├── memory/         # Vector store (Chroma), context manager, episodic memory
-├── synthesis/      # Multi-source synthesis and conflict resolution
-├── evaluation/     # Metrics framework, benchmarks, dashboard
-├── config/         # Environment and model configuration
-├── scripts/        # Utility and API smoke test scripts (api_smoke_test.py)
-├── tests/          # Unit and integration test suite (test_memory.py, test_tools.py, test_api.py)
-├── results/        # Generated reports (challenge_1.md ... challenge_8.md, evaluation_report_v2.md)
-└── docs/           # Architecture spec, trace gallery, optimization log, evaluation_report_final.md
+├── agent/                         # Core agent logic (reasoning loop, LLM wrapper, prompts, parser)
+├── api/                           # FastAPI REST & WebSocket web service (main.py, schemas.py, routes/)
+├── tools/                         # 12 live tool implementations & JSON schemas
+├── memory/                        # Vector store (Chroma), context manager, episodic memory
+├── synthesis/                     # Multi-source synthesis and conflict resolution
+├── evaluation/                    # Metrics framework, benchmarks, dashboard
+├── config/                        # Environment and model configuration
+├── frontend/                      # React 18 / Vite / Tailwind UI application
+│   ├── src/
+│   │   ├── lib/api.ts             # Type-safe API client
+│   │   ├── hooks/                 # Custom WebSocket stream hook
+│   │   └── pages/                 # Console, Trace, Report, Tools, Memory, Eval, Gallery
+├── scripts/                       # Utility & API smoke test scripts (api_smoke_test.py)
+├── tests/                         # Unit & integration test suite (test_memory.py, test_tools.py, test_api.py)
+├── results/                       # Generated reports (challenge_1.md ... challenge_8.md, evaluation_report_v2.md)
+└── docs/                          # Architecture spec, trace gallery, optimization log, demo_video_script.md
 ```
 
 ---
