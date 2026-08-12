@@ -24,7 +24,7 @@
 | **Day 11** | Evaluation Framework & LLM-as-Judge | ✅ Complete | 20+ Metric Evaluation Framework (`run_day11_evaluation.py`, `results/evaluation_report.md`, `evaluation_dashboard.html`) |
 | **Day 12** | Challenge 8 & System Stress Testing | ✅ Complete | Challenge 8 NVDA 50% failure report (`results/challenge_8.md`), 3 stress tests (`results/stress_test_report.md`), token usage analysis |
 | **Day 13** | Measurable Optimization & Evaluation V2 | ✅ Complete | +8.76 pt score gain, 32.0% token reduction, +21.1% memory utilization (`docs/optimization_log.md`, `results/evaluation_report_v2.md`) |
-| **Day 14** | End-to-End Benchmark Run | 📅 Upcoming | Full test suite against all progressive challenges |
+| **Day 14** | Final Documentation & Trace Gallery | ✅ Complete | `docs/architecture_specification_final.md`, `docs/trace_gallery.md`, `docs/evaluation_report_final.md`, `ERROR_LOG.md` |
 | **Day 15** | Code Cleanup & Final Audit | 📅 Upcoming | Final repository audit and release |
 | **Days 16–18** | Additive Web Layer | 📅 Upcoming | FastAPI backend (`api/`) & React 18 / Vite / Tailwind UI (`frontend/`) |
 
@@ -34,46 +34,27 @@
 
 ARA-1 receives a natural language financial research query, autonomously plans a multi-step roadmap, calls tools across SEC EDGAR, financial data APIs, earnings call transcripts, news/web search, and its own 3-layer vector memory, resolves conflicting data via a 5-tier source reliability hierarchy, and produces a structured, cited investment research report with DCF valuation models.
 
-### Key Architectural Layers
-
-1. **Agent Pattern:** Plan-and-Execute global strategy with a bounded ReAct inner loop per step.
-2. **LLM Engine:** Groq API (`llama-3.3-70b-versatile` for planning/synthesis; `llama-3.1-8b-instant` for fast execution; `llama-3.3-70b-versatile` for LLM-as-Judge).
-3. **Three-Layer Memory Architecture:**
-   - **Short-Term Memory:** Live context manager tracking token usage with 70% threshold trace compaction.
-   - **Long-Term Memory:** Local ChromaDB with structural chunking (SEC Filings by Item, Transcripts by speaker-turn, News by paragraph carrying headline context, Financial Statements as metadata).
-   - **Episodic Memory:** Task episode strategy log for past strategy recall.
-4. **12 Live Tools:** `sec_filing_search`, `financial_data_api`, `earnings_transcript`, `news_sentiment`, `web_search`, `vector_db_search`, `vector_db_store`, `company_profile`, `peer_comparison`, `calculation_engine` (with DCF model), `fact_checker`, `report_generator`.
-
 ---
 
-## 📈 Quantified Optimization & Evaluation Benchmarks (Day 11 vs Day 13)
+## 💻 Complete Setup Instructions
 
-| Performance Metric | Day 11 Baseline | Day 13 Optimized | Verified Metric Improvement |
-| :--- | :--- | :--- | :--- |
-| **Composite Evaluation Score** | **81.17 / 100** | **89.94 / 100** | **+8.76 Points Gain** |
-| **Tool Efficiency (AB-1)** | 88.5% | 94.2% | **+5.7% Improvement** |
-| **Memory Utilization (AB-4)** | 71.4% | 92.5% | **+21.1% Increase** |
-| **Section Coverage (CO-1)** | 76.1% | 95.2% | **+19.1% Gain** |
-| **Total Prompt Tokens** | 64,820 tokens | 44,077 tokens | **32.0% Token Cost Reduction** |
-| **Average Query Latency (AB-5)** | 38.2s avg | 21.4s avg | **44.0% Faster Execution** |
-| **Hallucination Rate (FA-5)** | 0.00% | 0.00% | **Sustained 0.00% (Zero Hallucinations)** |
+### 1. System Requirements
+- **OS**: Windows, macOS, or Linux
+- **Python**: Version 3.10, 3.11, or 3.12 recommended
+- **Hardware**: CPU-only supported (16GB RAM recommended; no local GPU required)
 
----
-
-## 💻 Quick Start
-
-### 1. Clone the repository
+### 2. Clone the Repository
 
 ```bash
 git clone https://github.com/atifkhani397/Financial-Research-agent-.git
 cd Financial-Research-agent-
 ```
 
-### 2. Create a dedicated virtual environment (`.venv`)
+### 3. Create & Activate Virtual Environment
 
 ```bash
-# Windows
-py -3.14 -m venv .venv
+# Windows (PowerShell)
+py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
 # macOS/Linux
@@ -81,22 +62,68 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install dependencies
+### 4. Install Dependencies
 
 ```bash
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt tavily-python
+python -m pip install -r requirements.txt
 ```
 
-### 4. Set up environment variables
+---
+
+## 🔑 Required API Keys & Acquisition Guide
+
+| API Key / Setting | Mandatory? | Free Tier Available? | Acquisition URL & Registration Instructions |
+| :--- | :---: | :---: | :--- |
+| `GROQ_API_KEY` | **Yes** | **Yes** (Free) | Register at [console.groq.com](https://console.groq.com). Create an API key under **API Keys**. Powers planning, execution, synthesis, and judge passes. |
+| `SEC_EDGAR_USER_AGENT` | **Yes** | **Yes** (Free) | SEC EDGAR requires a custom User-Agent header (format: `CompanyName AdminEmail`, e.g. `QuantumEdge Research admin@quantumedge.com`). No API key needed. |
+| `FMP_API_KEY` | Optional | **Yes** (Free) | Register at [financialmodelingprep.com/developer](https://financialmodelingprep.com/developer). Free tier provides company profiles, income statements, balance sheets. |
+| `TAVILY_API_KEY` | Optional | **Yes** (Free) | Register at [tavily.com](https://tavily.com). Free tier provides 1,000 search queries/month for web search fallbacks. |
+| `NEWS_API_KEY` | Optional | **Yes** (Free) | Register at [newsapi.org](https://newsapi.org). Free tier provides 100 requests/day for news sentiment aggregation. |
+
+Create `.env` in the root directory:
 
 ```bash
 cp .env.example .env
-# Edit .env and add your GROQ_API_KEY (required)
-# Get your key at: https://console.groq.com
 ```
 
-### 5. Run Evaluation Suites & Stress Tests
+Fill in `.env`:
+
+```env
+GROQ_API_KEY=gsk_your_groq_key_here
+SEC_EDGAR_USER_AGENT=QuantumEdge Research atif.khan@example.com
+FMP_API_KEY=your_fmp_key_here
+TAVILY_API_KEY=tvly-your_tavily_key_here
+NEWS_API_KEY=your_news_key_here
+```
+
+---
+
+## ⚡ Quick-Start Example Query
+
+Run an autonomous research task using python:
+
+```python
+from agent.core import FinancialResearchAgent
+from agent.llm import get_llm
+from tools.tool_registry import ToolRegistry
+
+# Initialize LLM wrapper and tool registry
+llm = get_llm()
+registry = ToolRegistry()
+
+# Initialize agent instance
+agent = FinancialResearchAgent(llm_wrapper=llm, tool_registry=registry)
+
+# Run autonomous research task
+query = "Produce a complete investment research report on NVIDIA Corporation (NVDA)."
+result = agent.run(query=query, session_id="demo-session-nvda")
+
+# Output generated publication-grade report
+print(result["report"])
+```
+
+Or execute evaluation & stress test suites directly from CLI:
 
 ```bash
 # Day 11 Full 20+ Metric Evaluation Suite
@@ -111,20 +138,35 @@ python run_day13_evaluation.py
 
 ---
 
-## 🛠️ Environment Variables
+## 📈 Measured System Improvements (Day 11 vs Day 13)
 
-| Variable | Required | Description |
-| :--- | :---: | :--- |
-| `GROQ_API_KEY` | **Yes** | Groq API key from [console.groq.com](https://console.groq.com) |
-| `GROQ_PLANNING_MODEL` | No | Model for planning/synthesis (default: `llama-3.3-70b-versatile`) |
-| `GROQ_FAST_MODEL` | No | Model for fast sub-tasks (default: `llama-3.1-8b-instant`) |
-| `GROQ_JUDGE_MODEL` | No | Model for evaluation (default: `llama-3.3-70b-versatile`) |
-| `SEC_EDGAR_USER_AGENT` | No | Required by SEC.gov (format: `QuantumEdge Research email@domain.com`) |
-| `FMP_API_KEY` | No | Financial Modeling Prep API key |
-| `TAVILY_API_KEY` | No | Tavily web search API key |
-| `NEWS_API_KEY` | No | NewsAPI.org key |
+| Performance Metric | Day 11 Baseline | Day 13 Optimized | Verified Metric Improvement |
+| :--- | :--- | :--- | :--- |
+| **Composite Evaluation Score** | **81.17 / 100** | **89.94 / 100** | **+8.76 Points Gain** |
+| **Tool Efficiency (AB-1)** | 88.5% | 94.2% | **+5.7% Improvement** |
+| **Memory Utilization (AB-4)** | 71.4% | 92.5% | **+21.1% Increase** |
+| **Section Coverage (CO-1)** | 76.1% | 95.2% | **+19.1% Gain** |
+| **Total Prompt Tokens** | 64,820 tokens | 44,077 tokens | **32.0% Token Cost Reduction** |
+| **Average Query Latency (AB-5)** | 38.2s avg | 21.4s avg | **44.0% Faster Execution** |
+| **Hallucination Rate (FA-5)** | 0.00% | 0.00% | **Sustained 0.00% (Zero Hallucinations)** |
 
-See [.env.example](.env.example) for details.
+---
+
+## 🤖 AI Assistance Disclosure (Section E5.3)
+
+In compliance with **Section E5.3 of the Zetheta Algorithms Project Brief**, below is the specific disclosure detailing which AI tools were used during development and for what tasks:
+
+1. **Antigravity AI (Google DeepMind)**:
+   - **Usage**: Primary agentic pair programming assistant.
+   - **Specific Tasks**: Architected the hybrid Plan-and-Execute reasoning engine, wrote Tenacity retry wrappers, developed vector store chunking logic (`memory/vector_store.py`), created 20+ metric evaluation scripts (`run_day11_evaluation.py`, `run_day13_evaluation.py`), and formatted markdown artifacts.
+
+2. **Groq Cloud API Models (`llama-3.3-70b-versatile` & `llama-3.1-8b-instant`)**:
+   - **Usage**: Runtime LLM inference engine powering the agent at runtime.
+   - **Specific Tasks**: `llama-3.3-70b-versatile` executed step planning, plan revisions, multi-source synthesis, and qualitative LLM-as-Judge evaluation passes. `llama-3.1-8b-instant` executed fast ReAct Thought-Action tool selection cycles.
+
+3. **Sentence Transformers (`sentence-transformers/all-MiniLM-L6-v2`)**:
+   - **Usage**: Local HuggingFace embedding model.
+   - **Specific Tasks**: Embedded SEC filing chunks, earnings transcripts, and news articles into 384-dimensional dense vectors for ChromaDB long-term memory retrieval.
 
 ---
 
@@ -139,16 +181,8 @@ See [.env.example](.env.example) for details.
 ├── config/         # Environment and model configuration
 ├── tests/          # Unit and integration test suite
 ├── results/        # Generated reports (challenge_1.md ... challenge_8.md, evaluation_report_v2.md)
-└── docs/           # Architecture spec, trace gallery, optimization log
+└── docs/           # Architecture spec, trace gallery, optimization log, evaluation_report_final.md
 ```
-
----
-
-## 💻 Hardware Requirements
-
-- **CPU-only laptop** (Intel i7 8th gen, 16GB RAM — no GPU required)
-- All LLM inference runs on Groq's cloud API
-- Embeddings run locally via `sentence-transformers/all-MiniLM-L6-v2` or in-memory fallback
 
 ---
 
