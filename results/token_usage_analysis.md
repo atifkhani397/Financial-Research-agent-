@@ -4,18 +4,18 @@
 
 ## Overall Token Consumption Summary
 
-- **Total LLM Calls**: `42`
-- **Total Prompt Tokens**: `64,820`
-- **Total Completion Tokens**: `11,450`
-- **Cumulative Token Count**: `76,270`
+- **Total LLM Calls**: `21`
+- **Total Prompt Tokens**: `67,670`
+- **Total Completion Tokens**: `3,796`
+- **Cumulative Token Count**: `71,466`
 
 ### Consumption Breakdown by Groq Model Role
 
 | Model ID | Role | Est. Call Share | Usage Note |
 | :--- | :--- | :--- | :--- |
-| `llama-3.3-70b-versatile` | Planning & Synthesis | ~40% | Large context prompt window for step planning & final report generation |
-| `llama-3.1-8b-instant` | Fast Executor | ~45% | Bounded ReAct Thought-Action loop cycles with low latency |
-| `mixtral-8x7b-32768` | Judge Model | ~15% | High-capability qualitative evaluation pass across 20+ metrics |
+| `qwen/qwen3-32b` | Planning & Synthesis | ~40% | Large context prompt window for step planning |
+| `openai/gpt-oss-20b` | Fast Executor | ~45% | Bounded ReAct Thought-Action loop cycles |
+| `openai/gpt-oss-120b` | Judge Model | ~15% | High-capability qualitative evaluation pass |
 
 ## Top 3 Token Optimization Opportunities Identified
 
@@ -31,7 +31,7 @@
 
 ### 3. Static System Prompt Boilerplate Duplication
 - **Issue**: Identical system prompt instructions (synthesis rules, citation requirements) are repeated across all synthesis sub-calls.
-- **Optimization**: Prefix Caching & Shared Context — leverage Groq prompt caching for fixed system instruction blocks.
+- **Optimization**: Prefix Caching & Shared Context — leverage Groq/OpenAI prompt caching for fixed system instruction blocks.
 - **Est. Savings**: ~20-25% latency and token cost savings on planning/synthesis phases.
 
 ---
