@@ -153,9 +153,9 @@ def main():
     report_path.write_text(report_text, encoding="utf-8")
     
     logger.info(f"Evaluation report successfully saved to: {report_path}")
-    print(f"\n✅ Day 11 Evaluation Completed Successfully!")
-    print(f"📄 Report written to: {report_path}")
-    print(f"📊 HTML Dashboard written to: {html_path}\n")
+    print(f"\n[SUCCESS] Day 11 Evaluation Completed Successfully!")
+    print(f"Report written to: {report_path}")
+    print(f"HTML Dashboard written to: {html_path}\n")
 
 
 if __name__ == "__main__":
