@@ -27,7 +27,8 @@
 | **Day 14** | Final Documentation & Trace Gallery | ✅ Complete | `docs/architecture_specification_final.md`, `docs/trace_gallery.md`, `docs/evaluation_report_final.md`, `ERROR_LOG.md` |
 | **Day 15** | Code Cleanup & Final Audit | ✅ Complete | `.zetheta-project.json`, `docs/demo_video_script.md`, repo layout verification |
 | **Day 16** | FastAPI Layer Over Agent Engine | ✅ Complete | REST & WebSocket API (`api/main.py`, `api/routes/`, `api/schemas.py`, `api/websocket.py`, `tests/test_api.py`) |
-| **Days 17–18** | Additive Web Layer (React Frontend) | 📅 Upcoming | React 18 / Vite / Tailwind UI (`frontend/`) |
+| **Day 17** | Modern React 18 Frontend UI | ✅ Complete | React 18 / Vite / Tailwind UI (`frontend/`, `QueryConsolePage`, `LiveTraceView`, `ReportViewerPage`, `ToolRegistryPage`, `MemoryExplorerPage`, `EvaluationDashboardPage`, `TraceGalleryPage`) |
+| **Day 18** | Web Layer Audit & Final Polish | 📅 Upcoming | Web layer integration audit and full-stack release |
 
 ---
 
