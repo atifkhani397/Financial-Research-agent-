@@ -506,6 +506,9 @@ class FinancialResearchAgent:
                         self.tool_results_history.append(result)
                     obs_str = json.dumps(result, indent=2, default=str)
 
+                    # Section A8.2 Stage 4 Token Budgeting: Compress/truncate oversized payloads
+                    obs_str_bounded = obs_str if len(obs_str) <= 1500 else obs_str[:1500] + "\n... [Payload compressed for token budgeting]"
+
                     obs_latency = (time.time() - obs_start) * 1000
                     self.total_tool_calls += 1
                     step_tool_calls += 1
@@ -519,20 +522,20 @@ class FinancialResearchAgent:
                     )
 
                     self._add_trace("OBSERVATION", step_id=step_id, cycle=cycle,
-                                    tool_name=tc.tool_name, tool_result=obs_str,
+                                    tool_name=tc.tool_name, tool_result=obs_str_bounded,
                                     content=f"Result from {tc.tool_name}")
-                    log_agent_step("OBSERVATION", f"{tc.tool_name}: {obs_str[:200]}",
+                    log_agent_step("OBSERVATION", f"{tc.tool_name}: {obs_str_bounded[:200]}",
                                    session_id=self.session_id)
 
                     findings_parts.append(
-                        f"[{tc.tool_name}({json.dumps(tc.arguments)})]: {obs_str}"
+                        f"[{tc.tool_name}({json.dumps(tc.arguments)})]: {obs_str_bounded}"
                     )
 
-                    # Add to conversation for next cycle
+                    # Add to conversation for next cycle (bounded to respect token budget)
                     conversation.append({"role": "assistant", "content": parsed.raw_content,
                                          "tool_calls_data": str(tc)})
                     conversation.append({"role": "user",
-                                         "content": f"Tool result from {tc.tool_name}: {obs_str}"})
+                                         "content": f"Tool result from {tc.tool_name}: {obs_str_bounded}"})
 
             # ── Check for step completion ─────────────────────────────
             if parsed.step_complete or is_synthesis_step:

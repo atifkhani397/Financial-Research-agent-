@@ -1,12 +1,12 @@
 {
     "name": "company_profile",
-    "description": "Retrieves static metadata about a company. Use this to get background information, sector, industry, and executive details (Tier 2).",
+    "description": "Retrieves comprehensive company overview, business description, sector, industry, market cap, stock price, CIK, headquarters, and key executive leadership details in a single primary call. Always use this first for company overview steps.",
     "parameters": {
         "type": "object",
         "properties": {
             "ticker": {
                 "type": "string",
-                "description": "The stock ticker symbol."
+                "description": "The stock ticker symbol (e.g. AAPL, MSFT, TSLA)."
             }
         },
         "required": [

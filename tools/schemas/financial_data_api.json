@@ -1,21 +1,27 @@
 {
     "name": "financial_data_api",
-    "description": "Retrieves structured financial metrics and historical pricing data. Use this for quantitative data like P/E ratios, revenue figures, and historical prices (Tier 2).",
+    "description": "Retrieves structured financial statement metrics (revenue, net income, gross margin, EPS, operating cash flow, balance sheet) across recent fiscal years and quarters. Use for quantitative financial analysis.",
     "parameters": {
         "type": "object",
         "properties": {
             "ticker": {
                 "type": "string",
-                "description": "The stock ticker symbol."
+                "description": "The stock ticker symbol (e.g. AAPL, MSFT, TSLA)."
             },
-            "metric": {
+            "period": {
                 "type": "string",
-                "description": "The specific financial metric requested (e.g., 'revenue', 'pe_ratio')."
+                "enum": ["annual", "quarter"],
+                "default": "annual",
+                "description": "Reporting period frequency."
+            },
+            "limit": {
+                "type": "integer",
+                "default": 4,
+                "description": "Number of periods to return."
             }
         },
         "required": [
-            "ticker",
-            "metric"
+            "ticker"
         ]
     }
 }

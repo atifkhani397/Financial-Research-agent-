@@ -31,7 +31,7 @@ class Settings:
         # --- Groq Model IDs (configurable, not hardcoded in agent logic) ---
         self.planning_model: str = os.getenv("GROQ_PLANNING_MODEL", "llama-3.3-70b-versatile")
         self.fast_model: str = os.getenv("GROQ_FAST_MODEL", "llama-3.1-8b-instant")
-        self.judge_model: str = os.getenv("GROQ_JUDGE_MODEL", "mixtral-8x7b-32768")
+        self.judge_model: str = os.getenv("GROQ_JUDGE_MODEL", "llama-3.3-70b-versatile")
 
         # --- Groq Rate Limits ---
         self.groq_rpm: int = int(os.getenv("GROQ_REQUESTS_PER_MINUTE", "30"))

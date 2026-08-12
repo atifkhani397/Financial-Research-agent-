@@ -42,10 +42,11 @@ logger = logging.getLogger("ara1.memory.vector_store")
 
 # ── Structural Text Chunkers (Section A3.3) ──────────────────────────
 
-def chunk_sec_filing(text: str, max_chunk_size: int = 1500) -> List[str]:
+def chunk_sec_filing(text: str, max_chunk_size: int = 900) -> List[str]:
     """
     Chunk SEC filings by Section / Item / Risk Factors headings.
     Splits on patterns like 'Item 1.', 'Item 1A.', 'Item 7.', 'PART I', etc.
+    Tuned to max 900 chars per Day 13 retrieval optimizations.
     """
     if not text or not text.strip():
         return []
@@ -85,10 +86,10 @@ def chunk_sec_filing(text: str, max_chunk_size: int = 1500) -> List[str]:
     return chunks if chunks else [text.strip()]
 
 
-def chunk_earnings_transcript(text: str, max_chunk_size: int = 1500) -> List[str]:
+def chunk_earnings_transcript(text: str, max_chunk_size: int = 900) -> List[str]:
     """
     Chunk earnings transcripts by speaker-turn or Q&A pair per Section A3.3.
-    Splits on speaker tags like 'Operator:', 'Speaker:', 'Q:', 'A:', or '[Name]:'.
+    Tuned to max 900 chars for precision retrieval.
     """
     if not text or not text.strip():
         return []
@@ -130,9 +131,10 @@ def chunk_earnings_transcript(text: str, max_chunk_size: int = 1500) -> List[str
     return chunks if chunks else [text.strip()]
 
 
-def chunk_news_article(text: str, headline: str = "", max_chunk_size: int = 1200) -> List[str]:
+def chunk_news_article(text: str, headline: str = "", max_chunk_size: int = 800) -> List[str]:
     """
     Chunk news articles by paragraph, carrying headline context into every chunk.
+    Tuned to max 800 chars.
     """
     if not text or not text.strip():
         return []

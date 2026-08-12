@@ -1,21 +1,21 @@
 {
     "name": "vector_db_search",
-    "description": "Searches the agent's long-term vector memory for previously chunked and stored findings. Use this to recall context from earlier sessions or existing company research.",
+    "description": "Searches the agent's long-term vector memory for previously stored findings, 10-K risk factors, earnings transcripts, and company metrics. Invoke this BEFORE external calls when seeking previously gathered research or session findings.",
     "parameters": {
         "type": "object",
         "properties": {
             "query": {
                 "type": "string",
-                "description": "The semantic search query."
+                "description": "The semantic search query (e.g. 'cloud revenue growth', 'risk factors', 'margin trends')."
             },
             "top_k": {
                 "type": "integer",
                 "default": 5,
-                "description": "Number of results to return."
+                "description": "Number of results to return (default: 5)."
             },
             "ticker": {
                 "type": "string",
-                "description": "Optional ticker filter (e.g., MSFT)."
+                "description": "Optional ticker filter (e.g., MSFT, AAPL)."
             },
             "source_type": {
                 "type": "string",
