@@ -4,22 +4,105 @@
 
 @layer base {
   body {
-    @apply bg-[#0b0f19] text-gray-100 font-sans antialiased min-h-screen selection:bg-blue-500 selection:text-white;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    @apply bg-[#060911] text-slate-100 font-sans antialiased min-h-screen selection:bg-cyan-500/30 selection:text-cyan-200;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* Custom scrollbar for dark analytical theme */
+/* Modern Dashboard Glass & Sidebar Utilities */
+.sidebar-panel {
+  background: rgba(10, 14, 26, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel {
+  background: rgba(13, 19, 34, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.glass-panel-hover {
+  background: rgba(13, 19, 34, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(18, 27, 48, 0.9);
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 12px 40px 0 rgba(6, 182, 212, 0.15);
+  transform: translateY(-2px);
+}
+
+.nav-item-active {
+  background: linear-gradient(90deg, rgba(6, 182, 212, 0.18) 0%, rgba(6, 182, 212, 0.04) 100%);
+  color: #67e8f9;
+  border-left: 3px solid #06b6d4;
+  box-shadow: inset 0 0 12px rgba(6, 182, 212, 0.15);
+}
+
+.glass-input {
+  background: rgba(6, 9, 17, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus {
+  border-color: rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+  outline: none;
+}
+
+.gradient-text-cyan {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400;
+}
+
+.gradient-text-purple {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-300 to-indigo-400;
+}
+
+.gradient-text-gold {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-orange-300 to-yellow-400;
+}
+
+.ambient-mesh {
+  background-image: 
+    radial-gradient(at 10% 10%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, rgba(124, 58, 237, 0.12) 0px, transparent 50%),
+    radial-gradient(at 50% 90%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+}
+
+.grid-pattern {
+  background-size: 36px 36px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
+/* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #060911;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1f2937;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+  background: rgba(6, 182, 212, 0.6);
 }
