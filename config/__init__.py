@@ -25,10 +25,15 @@ class Settings:
     """Central configuration for ARA-1. All values come from environment variables."""
 
     def __init__(self):
-        # --- Groq API (REQUIRED) ---
+        # --- Groq / Primary API (REQUIRED) ---
         self.groq_api_key: str = self._require("GROQ_API_KEY")
+        self.groq_api_base: str = os.getenv("GROQ_API_BASE", "")
 
-        # --- Groq Model IDs (configurable, not hardcoded in agent logic) ---
+        # --- TokenRouter / Secondary API (FALLBACK) ---
+        self.tokenrouter_api_key: str = os.getenv("TOKENROUTER_API_KEY", "")
+        self.tokenrouter_api_base: str = os.getenv("TOKENROUTER_API_BASE", "https://api.tokenrouter.com/v1")
+
+        # --- Model IDs (configurable, not hardcoded in agent logic) ---
         self.planning_model: str = os.getenv("GROQ_PLANNING_MODEL", "llama-3.3-70b-versatile")
         self.fast_model: str = os.getenv("GROQ_FAST_MODEL", "llama-3.1-8b-instant")
         self.judge_model: str = os.getenv("GROQ_JUDGE_MODEL", "llama-3.3-70b-versatile")

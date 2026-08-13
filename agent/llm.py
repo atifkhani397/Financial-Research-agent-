@@ -79,23 +79,36 @@ class LLMWrapper:
         self.settings = get_settings()
         self._models: dict[str, ChatGroq] = {}
 
-    def _get_model(self, role: Literal["planning", "fast", "judge"]) -> ChatGroq:
-        """Get or create a ChatGroq instance for the given role."""
-        if role not in self._models:
+    def _get_model(self, role: Literal["planning", "fast", "judge"], provider: str = "primary") -> ChatGroq:
+        """Get or create a ChatGroq instance for the given role and provider."""
+        cache_key = f"{role}_{provider}"
+        if cache_key not in self._models:
             model_map = {
                 "planning": self.settings.planning_model,
                 "fast": self.settings.fast_model,
                 "judge": self.settings.judge_model,
             }
             model_id = model_map[role]
-            self._models[role] = ChatGroq(
-                model=model_id,
-                api_key=self.settings.groq_api_key,
-                temperature=0.1 if role == "planning" else 0.0,
-                max_retries=0,  # We handle retries ourselves via tenacity
-            )
-            logger.info(f"Initialized ChatGroq for role={role} model={model_id}")
-        return self._models[role]
+            
+            if provider == "secondary" and self.settings.tokenrouter_api_key:
+                api_key = self.settings.tokenrouter_api_key
+                base_url = self.settings.tokenrouter_api_base or "https://api.tokenrouter.com/v1"
+            else:
+                api_key = self.settings.groq_api_key
+                base_url = self.settings.groq_api_base
+
+            kwargs = {
+                "model": model_id,
+                "api_key": api_key,
+                "temperature": 0.1 if role == "planning" else 0.0,
+                "max_retries": 0,
+            }
+            if base_url:
+                kwargs["base_url"] = base_url
+
+            self._models[cache_key] = ChatGroq(**kwargs)
+            logger.info(f"Initialized ChatGroq | role={role} provider={provider} model={model_id} base_url={base_url or 'default'}")
+        return self._models[cache_key]
 
     @retry(
         retry=retry_if_exception_type(RateLimitError),
@@ -111,71 +124,73 @@ class LLMWrapper:
         session_id: str = "",
     ) -> dict:
         """
-        Send a chat completion request to Groq.
-
-        Args:
-            messages: List of message dicts (role/content).
-            role: Which model to use — "planning", "fast", or "judge".
-            tools: Optional list of tool schemas for function calling.
-            session_id: Research session ID for logging.
-
-        Returns:
-            dict with keys: content, tool_calls, usage, model, latency_ms
+        Send a chat completion request with automatic multi-provider fallback.
+        Tries Primary API (Groq), then falls back to Secondary API (TokenRouter) if configured.
         """
-        model = self._get_model(role)
-        model_id = model.model_name
-        start = time.time()
+        providers = ["primary"]
+        if self.settings.tokenrouter_api_key:
+            providers.append("secondary")
 
-        try:
-            kwargs = {}
-            if tools:
-                kwargs["tools"] = tools
+        last_error = None
+        for provider in providers:
+            try:
+                model = self._get_model(role, provider=provider)
+                model_id = model.model_name
+                start = time.time()
 
-            response = model.invoke(messages, **kwargs)
-            latency_ms = (time.time() - start) * 1000
+                kwargs = {}
+                if tools:
+                    kwargs["tools"] = tools
 
-            # Extract token usage if available
-            prompt_tokens = 0
-            completion_tokens = 0
-            if hasattr(response, "response_metadata"):
-                usage = response.response_metadata.get("token_usage", {})
-                prompt_tokens = usage.get("prompt_tokens", 0)
-                completion_tokens = usage.get("completion_tokens", 0)
+                response = model.invoke(messages, **kwargs)
+                latency_ms = (time.time() - start) * 1000
 
-            token_tracker.record(model_id, prompt_tokens, completion_tokens)
+                # Extract token usage if available
+                prompt_tokens = 0
+                completion_tokens = 0
+                if hasattr(response, "response_metadata"):
+                    usage = response.response_metadata.get("token_usage", {})
+                    prompt_tokens = usage.get("prompt_tokens", 0)
+                    completion_tokens = usage.get("completion_tokens", 0)
 
-            # Extract tool calls if any
-            tool_calls = []
-            if hasattr(response, "tool_calls") and response.tool_calls:
-                tool_calls = response.tool_calls
+                token_tracker.record(model_id, prompt_tokens, completion_tokens)
 
-            result = {
-                "content": response.content if hasattr(response, "content") else str(response),
-                "tool_calls": tool_calls,
-                "usage": {
-                    "prompt_tokens": prompt_tokens,
-                    "completion_tokens": completion_tokens,
-                },
-                "model": model_id,
-                "latency_ms": round(latency_ms, 2),
-            }
+                # Extract tool calls if any
+                tool_calls = []
+                if hasattr(response, "tool_calls") and response.tool_calls:
+                    tool_calls = response.tool_calls
 
-            logger.info(
-                f"LLM call completed | role={role} model={model_id} "
-                f"latency={result['latency_ms']}ms "
-                f"tokens={prompt_tokens}+{completion_tokens} "
-                f"session={session_id}"
-            )
-            return result
+                result = {
+                    "content": response.content if hasattr(response, "content") else str(response),
+                    "tool_calls": tool_calls,
+                    "usage": {
+                        "prompt_tokens": prompt_tokens,
+                        "completion_tokens": completion_tokens,
+                    },
+                    "model": model_id,
+                    "provider": provider,
+                    "latency_ms": round(latency_ms, 2),
+                }
 
-        except Exception as e:
-            error_str = str(e).lower()
-            # Detect Groq 429 rate limit and raise our custom error for tenacity
-            if "429" in error_str or "rate_limit" in error_str or "rate limit" in error_str:
-                logger.warning(f"Rate limited by Groq on model={model_id}. Retrying...")
-                raise RateLimitError(f"Groq rate limit hit: {e}") from e
-            # All other errors propagate immediately
-            raise
+                logger.info(
+                    f"LLM call completed | provider={provider} role={role} model={model_id} "
+                    f"latency={result['latency_ms']}ms "
+                    f"tokens={prompt_tokens}+{completion_tokens} "
+                    f"session={session_id}"
+                )
+                return result
+
+            except Exception as e:
+                last_error = e
+                logger.warning(f"LLM call failed on provider={provider} model={role}: {e}")
+                if provider == "primary" and len(providers) > 1:
+                    logger.info("Failing over to secondary provider (TokenRouter)...")
+                    continue
+
+        error_str = str(last_error).lower()
+        if "429" in error_str or "rate_limit" in error_str or "rate limit" in error_str:
+            raise RateLimitError(f"All LLM providers rate limited: {last_error}") from last_error
+        raise last_error
 
     def get_planning_model(self) -> ChatGroq:
         """Get the ChatGroq instance for planning/synthesis tasks."""
