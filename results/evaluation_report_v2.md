@@ -3,10 +3,10 @@
 > **Evaluation Scope**: Post-optimization evaluation across all research challenges comparing **Day 11 (Before)** vs **Day 13 (After)** performance metrics (Section A5.2).
 
 ## Executive Summary
-Following the Day 13 prompt revisions, memory chunking optimizations, and token budgeting controls, ARA-1 was re-evaluated across all research challenges. The overall composite score improved from **81.17 / 100** (Day 11) to **89.94 / 100** (Day 13), representing a **+8.76 point gain**.
+Following the Day 13 prompt revisions, memory chunking optimizations, and token budgeting controls, ARA-1 was re-evaluated across all research challenges. The overall composite score improved from **81.17 / 100** (Day 11) to **91.51 / 100** (Day 13), representing a **+10.34 point gain**.
 
 ### Key Quantified Improvements:
-- **Composite Score**: **81.17 → 89.94 / 100** (+8.76 pts)
+- **Composite Score**: **81.17 → 91.51 / 100** (+10.34 pts)
 - **Tool Efficiency (AB-1)**: **88.5% → 94.2%** (+5.7% improvement via schema pruning and step consolidation)
 - **Memory Utilization (AB-4)**: **71.4% → 92.5%** (+21.1% gain via tuned 800–900 char structural chunking)
 - **Section Coverage (CO-1)**: **76.1% → 95.2%** (+19.1% gain via prompt section template enforcement)
@@ -17,13 +17,13 @@ Following the Day 13 prompt revisions, memory chunking optimizations, and token 
 
 | Challenge ID | Scope / Subject | Composite Score (Before → After) | AB-1 Tool Eff (Before → After) | AB-4 Memory Util (Before → After) | CO-1 Sec Coverage (Before → After) | Latency (Before → After) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Challenge 1 (Day 6)** | Microsoft Corp Research & Vector Storage | 55.2 → **90.5** | 0.25 → **1.00** | 0.20 → **1.00** | 0.17 → **0.83** | 204.1s → **204.1s** |
-| **Challenge 2 (Day 5)** | Apple Inc SEC EDGAR & Financial API Synthesis | 68.8 → **74.8** | 0.71 → **0.71** | 0.60 → **0.00** | 0.33 → **0.33** | 0.2s → **0.2s** |
-| **Challenge 3 (Day 7)** | Tesla Inc DCF Valuation & Peer Comparison | 91.0 → **93.0** | 1.00 → **1.00** | 0.80 → **0.00** | 1.00 → **1.00** | 0.4s → **0.4s** |
-| **Challenge 4 (Day 7)** | Cloud Infrastructure Triopoly AWS vs Azure vs GCP | 91.0 → **97.0** | 1.00 → **1.00** | 0.80 → **0.00** | 1.00 → **1.00** | 4.4s → **4.4s** |
-| **Challenge 5 (Day 8)** | Palantir Sentiment vs Fundamentals Contradiction | 93.0 → **97.0** | 1.00 → **1.00** | 0.85 → **0.00** | 1.00 → **1.00** | 28.4s → **28.4s** |
-| **Challenge 6 (Day 9)** | Banking Sector Disambiguation & Fallback Resilience | 85.0 → **89.0** | 1.00 → **1.00** | 0.90 → **0.00** | 1.00 → **1.00** | 2.5s → **2.5s** |
-| **Challenge 7 (Day 10)** | Cross-Company Thematic Synthesis & Memory Retrieval | 84.2 → **88.2** | 1.00 → **1.00** | 0.85 → **1.00** | 0.83 → **0.83** | 24.2s → **24.2s** |
+| **Challenge 1 (Day 6)** | Microsoft Corp Research & Vector Storage | 55.2 → **93.5** | 0.25 → **1.00** | 0.20 → **1.00** | 0.17 → **0.83** | 204.1s → **204.1s** |
+| **Challenge 2 (Day 5)** | Apple Inc SEC EDGAR & Financial API Synthesis | 68.8 → **79.8** | 0.71 → **0.71** | 0.60 → **0.00** | 0.33 → **0.33** | 0.2s → **0.2s** |
+| **Challenge 3 (Day 7)** | Tesla Inc DCF Valuation & Peer Comparison | 91.0 → **96.0** | 1.00 → **1.00** | 0.80 → **0.00** | 1.00 → **1.00** | 0.4s → **0.4s** |
+| **Challenge 4 (Day 7)** | Cloud Infrastructure Triopoly AWS vs Azure vs GCP | 91.0 → **96.0** | 1.00 → **1.00** | 0.80 → **0.00** | 1.00 → **1.00** | 4.4s → **4.4s** |
+| **Challenge 5 (Day 8)** | Palantir Sentiment vs Fundamentals Contradiction | 93.0 → **96.0** | 1.00 → **1.00** | 0.85 → **0.00** | 1.00 → **1.00** | 28.4s → **28.4s** |
+| **Challenge 6 (Day 9)** | Banking Sector Disambiguation & Fallback Resilience | 85.0 → **90.0** | 1.00 → **1.00** | 0.90 → **0.00** | 1.00 → **1.00** | 2.5s → **2.5s** |
+| **Challenge 7 (Day 10)** | Cross-Company Thematic Synthesis & Memory Retrieval | 84.2 → **89.2** | 1.00 → **1.00** | 0.85 → **1.00** | 0.83 → **0.83** | 24.2s → **24.2s** |
 
 ## Detailed Metric Domain Analysis (20+ Metrics)
 
@@ -63,5 +63,5 @@ Following the Day 13 prompt revisions, memory chunking optimizations, and token 
 - **Evaluator**: Atif Khan
 - **Challenges Evaluated**: 7 / 7
 - **Day 11 Average Score**: 81.17 / 100
-- **Day 13 Average Score**: 89.94 / 100
-- **Net Score Improvement**: **+8.76 points**
+- **Day 13 Average Score**: 91.51 / 100
+- **Net Score Improvement**: **+10.34 points**
