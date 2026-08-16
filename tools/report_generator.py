@@ -16,7 +16,7 @@ Graceful Degradation Protocol:
 """
 
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 logger = logging.getLogger("ara1.tools.report_generator")
 

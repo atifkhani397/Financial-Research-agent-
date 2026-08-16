@@ -412,19 +412,35 @@ class VectorStore:
             logger.info(f"Vector search returned {len(output)} results for query='{query[:50]}...'")
             return output
         else:
-            # Fallback text search
-            output = []
-            q_lower = query.lower()
+            # Fallback text search with keyword scoring and metadata filtering
+            scored_candidates = []
+            query_terms = [t for t in re.findall(r'\w+', query.lower()) if len(t) > 1]
             for doc in self.fallback_docs:
-                meta = doc["metadata"]
+                meta = doc.get("metadata", {})
                 if ticker and meta.get("ticker") != ticker:
                     continue
                 if source_type and meta.get("source_type") != source_type:
                     continue
-                if q_lower in doc["content"].lower():
-                    output.append(doc)
-                if len(output) >= top_k:
-                    break
+
+                doc_date = meta.get("date", "")
+                if date_start and doc_date and doc_date < date_start:
+                    continue
+                if date_end and doc_date and doc_date > date_end:
+                    continue
+
+                content_lower = doc["content"].lower()
+                if not query_terms:
+                    score = 1.0 if query.lower() in content_lower else 0.0
+                else:
+                    matches = sum(1 for term in query_terms if term in content_lower)
+                    score = matches / len(query_terms)
+
+                if score > 0.0:
+                    scored_candidates.append((score, doc))
+
+            scored_candidates.sort(key=lambda x: x[0], reverse=True)
+            output = [doc for score, doc in scored_candidates[:top_k]]
+            logger.info(f"Fallback search returned {len(output)} results for query='{query[:50]}...'")
             return output
 
     def count(self) -> int:
@@ -439,3 +455,20 @@ class VectorStore:
             self.client.delete_collection(self.collection.name)
         self.fallback_docs = []
         logger.warning("Collection reset.")
+
+
+_shared_vector_store_instance: Optional[VectorStore] = None
+
+
+def get_vector_store() -> VectorStore:
+    """Get or create the global shared VectorStore instance."""
+    global _shared_vector_store_instance
+    if _shared_vector_store_instance is None:
+        _shared_vector_store_instance = VectorStore()
+    return _shared_vector_store_instance
+
+
+def reset_shared_vector_store():
+    """Reset global shared VectorStore instance (for testing)."""
+    global _shared_vector_store_instance
+    _shared_vector_store_instance = None

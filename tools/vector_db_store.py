@@ -6,16 +6,7 @@ with structural chunking and Day 1 metadata tagging.
 """
 
 from typing import Dict, Any, Optional
-from memory.vector_store import VectorStore
-
-_vector_store_instance: Optional[VectorStore] = None
-
-
-def _get_vector_store() -> VectorStore:
-    global _vector_store_instance
-    if _vector_store_instance is None:
-        _vector_store_instance = VectorStore()
-    return _vector_store_instance
+from memory.vector_store import VectorStore, get_vector_store
 
 
 def execute(
@@ -24,7 +15,7 @@ def execute(
     **kwargs,
 ) -> Dict[str, Any]:
     """Store findings into Chroma vector store with structural chunking."""
-    vs = _get_vector_store()
+    vs = get_vector_store()
     meta = metadata or {}
 
     ticker = meta.get("ticker", kwargs.get("ticker", ""))

@@ -6,17 +6,7 @@ supporting semantic query search and metadata filtering.
 """
 
 from typing import Optional, Dict, Any
-from memory.vector_store import VectorStore
-
-# Module-level VectorStore instance
-_vector_store_instance: Optional[VectorStore] = None
-
-
-def _get_vector_store() -> VectorStore:
-    global _vector_store_instance
-    if _vector_store_instance is None:
-        _vector_store_instance = VectorStore()
-    return _vector_store_instance
+from memory.vector_store import VectorStore, get_vector_store
 
 
 def execute(
@@ -29,7 +19,7 @@ def execute(
     **kwargs,
 ) -> Dict[str, Any]:
     """Execute semantic search against the long-term Chroma vector store."""
-    vs = _get_vector_store()
+    vs = get_vector_store()
     results = vs.search(
         query=query,
         top_k=top_k,
