@@ -52,8 +52,9 @@ export const LiveTraceView: React.FC = () => {
 
   const { traceEvents: liveEvents, isConnected, error: wsError } = useWebSocketTrace(isRealSession ? sessionId : null);
 
-  // Use live WebSocket events if real session, else use sample demo events
-  const traceEvents = (isRealSession && liveEvents.length > 0) ? liveEvents : MOCK_DEMO_TRACES;
+  // Use live WebSocket events for real sessions (never show mock data for real sessions)
+  const traceEvents = isRealSession ? liveEvents : MOCK_DEMO_TRACES;
+  const isWaitingForEvents = isRealSession && liveEvents.length === 0;
 
   // Poll report status every 3 seconds
   const { data: reportData } = useQuery<ReportResponse>({
@@ -100,6 +101,9 @@ export const LiveTraceView: React.FC = () => {
             }`}>
               <span className={`w-2 h-2 rounded-full ${isRealSession && isConnected ? 'bg-emerald-400 animate-ping' : 'bg-cyan-400'}`} />
               {isRealSession ? (isConnected ? 'Live WebSocket Active' : 'Connecting Stream...') : 'Live Demo Trace Stream'}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold px-3 py-1 rounded-full bg-slate-900/80 text-amber-300 border border-amber-500/30">
+              <Activity className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Est. Time: 3–6 mins (20m Max Timeout)
             </span>
           </div>
           <h2 className="text-xl font-extrabold text-white flex items-center gap-2.5">
@@ -181,6 +185,17 @@ export const LiveTraceView: React.FC = () => {
         {wsError && isRealSession && (
           <div className="p-4 bg-red-950/40 border border-red-500/40 rounded-xl text-red-300 flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 shrink-0 text-red-400" /> {wsError}
+          </div>
+        )}
+
+        {isWaitingForEvents && !wsError && (
+          <div className="flex flex-col items-center justify-center py-16 space-y-4">
+            <div className="relative">
+              <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin" />
+              <Cpu className="w-5 h-5 text-cyan-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <p className="text-sm text-slate-400 font-medium">Agent is initializing research pipeline...</p>
+            <p className="text-xs text-slate-500">Live trace events will appear here as the agent reasons, executes tools, and synthesizes data.</p>
           </div>
         )}
 

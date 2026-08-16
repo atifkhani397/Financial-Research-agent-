@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
   FileText, ShieldCheck, ArrowLeft, ExternalLink, Scale, CheckCircle2, 
-  Printer, Share2, Sparkles, Database, BookmarkCheck, Copy, Check, AlertCircle
+  Printer, Share2, Sparkles, Database, BookmarkCheck, Copy, Check, AlertCircle, Download, Eye, FolderDown
 } from 'lucide-react';
-import { api, ReportResponse } from '../lib/api';
+import { api, ReportResponse, ReportListItem } from '../lib/api';
 
 const SAMPLE_DEMO_REPORT: ReportResponse = {
   session_id: "demo-nvda-report",
@@ -73,10 +73,18 @@ Net Present Value (NPV): $3.68 Trillion Implied Enterprise Value
 
 export const ReportViewerPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'report' | 'citations' | 'protocol'>('report');
 
   const isRealSession = !!sessionId && sessionId !== 'live-active-session' && sessionId !== 'demo';
+
+  // Fetch list of ALL generated research reports from backend
+  const { data: allReports } = useQuery<ReportListItem[]>({
+    queryKey: ['allReports'],
+    queryFn: api.getAllReports,
+    refetchInterval: 4000,
+  });
 
   const { data: realReport, isLoading, isError } = useQuery<ReportResponse>({
     queryKey: ['report', sessionId],
@@ -96,6 +104,34 @@ export const ReportViewerPage: React.FC = () => {
     }
   };
 
+  const handleDownloadPdf = (targetSessionId?: string) => {
+    const idToUse = targetSessionId || (isRealSession ? sessionId : null);
+    if (idToUse) {
+      window.location.href = api.getPdfUrl(idToUse);
+      return;
+    }
+
+    // Client-side fallback for sample/demo mode
+    const element = document.getElementById('report-content');
+    if (element) {
+      element.classList.add('bg-slate-900', 'text-white');
+      const opt = {
+        margin:       10,
+        filename:     `Research_Report_${sessionId || 'demo'}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      (window as any).html2pdf().set(opt).from(element).save().then(() => {
+        element.classList.remove('bg-slate-900', 'text-white');
+      });
+    } else {
+      setActiveTab('report');
+      setTimeout(() => handleDownloadPdf(targetSessionId), 100);
+    }
+  };
+
   if (isLoading && isRealSession) {
     return (
       <div className="flex flex-col items-center justify-center py-32 space-y-4">
@@ -109,7 +145,77 @@ export const ReportViewerPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Generated Reports Directory Section */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div>
+            <h2 className="text-xl font-extrabold text-white flex items-center gap-2.5">
+              <FolderDown className="w-5 h-5 text-cyan-400" /> Generated Research Reports Directory
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Select any generated research report to view online or download directly in PDF format.
+            </p>
+          </div>
+          <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 self-start sm:self-auto">
+            {allReports?.length || 0} Reports Ready
+          </span>
+        </div>
+
+        {allReports && allReports.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {allReports.map((rpt) => {
+              const isCurrent = rpt.session_id === sessionId;
+              return (
+                <div
+                  key={rpt.session_id}
+                  className={`p-5 rounded-2xl border transition-all ${
+                    isCurrent
+                      ? 'bg-slate-900/90 border-cyan-500/50 shadow-glow-cyan'
+                      : 'bg-slate-950/60 border-white/10 hover:border-cyan-500/30'
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                        ID: {rpt.session_id}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">
+                        {rpt.date}
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-slate-100 text-sm line-clamp-2 leading-snug">
+                      {rpt.title}
+                    </h3>
+
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => navigate(`/report/${rpt.session_id}`)}
+                        className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-mono font-bold text-cyan-300 border border-white/10 flex items-center gap-1.5 transition-colors"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-cyan-400" /> View Report
+                      </button>
+
+                      <a
+                        href={api.getPdfUrl(rpt.session_id)}
+                        download
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-xs font-mono font-bold text-white shadow-glow-cyan flex items-center gap-1.5 transition-all"
+                      >
+                        <Download className="w-3.5 h-3.5 text-white" /> Download PDF
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="p-6 bg-slate-950/60 rounded-2xl border border-white/10 text-xs text-slate-400 text-center font-mono">
+            No reports generated yet. Launch a research query from the Console to populate the directory.
+          </div>
+        )}
+      </div>
       {/* Top Header Actions */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link to="/" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-cyan-300 transition-colors">
@@ -124,10 +230,10 @@ export const ReportViewerPage: React.FC = () => {
             {copied ? 'Copied to Clipboard' : 'Copy Markdown'}
           </button>
           <button 
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-xs font-mono font-medium text-slate-300 border border-white/10 transition-colors"
+            onClick={handleDownloadPdf}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/80 to-teal-500/80 hover:from-cyan-400 hover:to-teal-400 text-xs font-mono font-bold text-white border border-cyan-500/50 shadow-glow-cyan transition-all"
           >
-            <Printer className="w-3.5 h-3.5 text-cyan-400" /> Print / PDF
+            <Download className="w-3.5 h-3.5 text-white" /> Download PDF
           </button>
           <span className="text-xs font-mono px-3 py-1.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 font-semibold shadow-glow-emerald">
             <ShieldCheck className="w-4 h-4 text-emerald-400" /> 100% Verified Citations
@@ -202,7 +308,7 @@ export const ReportViewerPage: React.FC = () => {
 
       {/* Tab Content 1: Full Report */}
       {activeTab === 'report' && (
-        <div className="glass-panel rounded-2xl p-8 sm:p-10 border border-white/10 shadow-glass-lg space-y-6 prose prose-invert max-w-none text-slate-200 text-sm leading-relaxed">
+        <div id="report-content" className="glass-panel rounded-2xl p-8 sm:p-10 border border-white/10 shadow-glass-lg space-y-6 prose prose-invert prose-cyan max-w-none text-slate-200 text-sm leading-relaxed">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {reportData.report_markdown}
           </ReactMarkdown>

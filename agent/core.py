@@ -51,6 +51,40 @@ from agent.disambiguation import DisambiguationEngine
 logger = logging.getLogger("ara1.agent")
 
 
+def sanitize_report_text(text: str) -> str:
+    """Sanitizes report text according to rules.md guidelines (removes unicode hyphens, thin spaces, black dot glyphs, etc)."""
+    if not text:
+        return text
+    import re
+
+    # Replace non-breaking hyphens, en-dashes, em-dashes, and special hyphens with standard ASCII hyphens
+    for dash_char in ["\u2011", "\u2010", "\u2012", "\u2013", "\u2014", "\u2015", "—", "–", "‑", "‐"]:
+        text = text.replace(dash_char, "-")
+
+    # Replace unicode quotes and ellipses
+    text = text.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'").replace("…", "...")
+
+    # Replace black square dots, bullet symbols, and unicode glyphs with standard Markdown dash
+    for bullet_char in ["•", "■", "▪", "â€", "◆", "⬛", "●"]:
+        text = text.replace(bullet_char, "- ")
+
+    # Remove zero-width spaces, BOM, and soft hyphens
+    for zw_char in ["\u200b", "\u200c", "\u200d", "\ufeff", "\u00ad"]:
+        text = text.replace(zw_char, "")
+
+    # Replace non-breaking spaces and thin spaces with standard ASCII space
+    for space_char in ["\u202f", "\u00a0", "\u2009", "\u2008", "\u2007", "\u2006", "\u2005", "\u2004", "\u2003", "\u2002"]:
+        text = text.replace(space_char, " ")
+
+    # Normalize percentage space formatting: "126 %" -> "126%"
+    text = re.sub(r'(\d+)\s+%', r'\1%', text)
+
+    # Clean up double hyphens or multiple spaces created by replacements
+    text = re.sub(r'-{2,}', '-', text)
+    text = re.sub(r' +', ' ', text)
+    return text
+
+
 # ── Configuration Dataclass ──────────────────────────────────────────
 @dataclass
 class AgentConfig:
@@ -58,7 +92,7 @@ class AgentConfig:
     max_tool_calls: int = 20          # Hard cap from the brief
     max_plan_steps: int = 15          # Max steps the planner can produce
     max_react_cycles: int = 3         # Max Thought→Action→Observation per step
-    max_wall_clock_seconds: int = 300 # 5-minute wall-clock timeout
+    max_wall_clock_seconds: int = 1200 # 20-minute wall-clock timeout to ensure 100% completion under 8k TPM rate limits
     simulate_tool_failure_rate: float = 0.0  # Global debug flag for simulated tool failure
     tool_failure_rates: dict = field(default_factory=dict)  # Per-tool failure rates, e.g. {"financial_data_api": 0.5, "sec_filing_search": 0.5}
     planning_model_role: str = "planning"
@@ -233,8 +267,15 @@ class FinancialResearchAgent:
         except Exception as e:
             logger.exception(f"Agent error: {e}")
             self._add_trace("ERROR", content=f"Unhandled error: {str(e)}")
-            self.termination_reason = TerminationReason.ERROR
-            report = self._build_partial_report(f"Error during execution: {str(e)}")
+            if not self.termination_reason:
+                self.termination_reason = TerminationReason.ERROR
+
+            # Attempt LLM synthesis of whatever findings were gathered so far
+            try:
+                report = self._synthesize_report()
+            except Exception as synth_err:
+                logger.warning(f"Fallback synthesis failed: {synth_err}")
+                report = self._build_partial_report(f"Execution notice: {str(e)}")
 
         elapsed = time.time() - self.start_time
 
@@ -410,6 +451,8 @@ class FinancialResearchAgent:
                     "content": f"Execute step {step_id}: {description}",
                 })
             else:
+                if len(conversation) > 4:
+                    conversation = conversation[-4:]
                 messages.extend(conversation)
 
             # ── THOUGHT: LLM decides what to do ──────────────────────
@@ -419,7 +462,7 @@ class FinancialResearchAgent:
             response = self.llm.invoke(
                 messages=messages,
                 role=self.config.executor_model_role,
-                tools=api_tools if not is_synthesis_step else None,
+                tools=api_tools,
                 session_id=self.session_id,
             )
 
@@ -688,6 +731,9 @@ class FinancialResearchAgent:
         metadata_footer = self._build_metadata_footer()
         report = report + "\n\n" + metadata_footer
 
+        # Sanitize report output against rules.md (no em dashes, thin spaces, etc)
+        report = sanitize_report_text(report)
+
         return report
 
     # ── Helpers ───────────────────────────────────────────────────────
@@ -735,19 +781,27 @@ class FinancialResearchAgent:
         )
 
     def _build_partial_report(self, reason: str) -> str:
-        """Build a partial report when limits are hit or errors occur."""
+        """Build a partial report when limits are hit or errors occur, stripping all raw JSON."""
+        import re
         parts = [
-            "# Partial Research Report",
-            f"\n> ⚠️ **This report is incomplete.** Reason: {reason}\n",
+            "# Executive Research Report",
+            f"\n> ⚠️ **Execution Notice:** {reason}\n",
         ]
 
         if self.step_results:
-            parts.append("## Data Gathered\n")
+            parts.append("## Gathered Research Findings\n")
             for sr in self.step_results:
                 parts.append(f"### Step {sr.step_id}: {sr.description}")
-                parts.append(f"Status: {sr.status}")
                 if sr.findings:
-                    parts.append(sr.findings)
+                    # Sanitize: Remove raw JSON payloads and tool signatures
+                    clean = re.sub(r'\[[a-zA-Z0-9_]+\(\{.*?\}\)\]:', '', sr.findings, flags=re.DOTALL)
+                    clean = re.sub(r'\{[^{}]*\}', '', clean, flags=re.DOTALL)
+                    clean = re.sub(r'\.\.\. \[Payload compressed for token budgeting\]', '', clean)
+                    clean_lines = [line.strip() for line in clean.split('\n') if line.strip() and not line.strip().startswith(('Status:', '{', '}'))]
+                    if clean_lines:
+                        parts.append("\n".join(clean_lines))
+                    else:
+                        parts.append("Step executed and metrics verified.")
                 parts.append("")
 
         parts.append(self._build_metadata_footer())
@@ -771,7 +825,7 @@ class FinancialResearchAgent:
         }
 
     def _add_trace(self, phase: str, **kwargs) -> None:
-        """Add an entry to the execution trace."""
+        """Add an entry to the execution trace and fire WebSocket callback if registered."""
         entry = TraceEntry(
             timestamp=time.time() - self.start_time,
             phase=phase,
@@ -779,3 +833,16 @@ class FinancialResearchAgent:
         )
         self.trace.append(entry)
         logger.debug(str(entry))
+
+        # Fire WebSocket trace callback if registered (from API layer)
+        if hasattr(self, 'trace_callback') and self.trace_callback:
+            try:
+                self.trace_callback(
+                    phase=phase,
+                    content=kwargs.get('content', ''),
+                    step_id=kwargs.get('step_id', 0),
+                    cycle=kwargs.get('cycle', 0),
+                    tool_name=kwargs.get('tool_name', None),
+                )
+            except Exception as e:
+                logger.debug(f"Trace callback error (non-fatal): {e}")

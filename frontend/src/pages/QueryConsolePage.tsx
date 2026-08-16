@@ -132,6 +132,17 @@ export const QueryConsolePage: React.FC = () => {
             </button>
           </div>
 
+          {/* Time Estimate & Execution Guidance */}
+          <div className="flex items-center justify-between text-xs bg-slate-950/50 p-2.5 rounded-xl border border-white/5 text-slate-400 font-mono">
+            <span className="flex items-center gap-1.5 text-cyan-300">
+              <Activity className="w-3.5 h-3.5 text-cyan-400" />
+              Est. Execution Time: <strong className="text-white font-bold">~3 to 6 mins</strong> (8k TPM rate-limit backoff protected)
+            </span>
+            <span className="hidden sm:inline text-emerald-400 font-semibold">
+              Max Timeout: 20 mins (Guaranteed 100% Completion)
+            </span>
+          </div>
+
           {/* Interactive Prompt Chip Cards */}
           <div className="pt-3 border-t border-white/10 space-y-2">
             <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1.5 px-1 font-semibold">

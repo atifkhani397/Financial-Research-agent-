@@ -28,7 +28,8 @@ def test_list_challenges_endpoint():
     challenges = response.json()
     assert len(challenges) == 8
     assert challenges[0]["challenge_id"] == 1
-    assert "Microsoft" in challenges[0]["title"]
+    assert "Single Company Profile" in challenges[0]["title"]
+    assert "Microsoft" in challenges[0]["query"]
 
 
 def test_run_challenge_endpoint():

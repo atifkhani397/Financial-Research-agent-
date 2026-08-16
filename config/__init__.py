@@ -34,13 +34,13 @@ class Settings:
         self.tokenrouter_api_base: str = os.getenv("TOKENROUTER_API_BASE", "https://api.tokenrouter.com/v1")
 
         # --- Model IDs (configurable, not hardcoded in agent logic) ---
-        self.planning_model: str = os.getenv("GROQ_PLANNING_MODEL", "llama-3.3-70b-versatile")
-        self.fast_model: str = os.getenv("GROQ_FAST_MODEL", "llama-3.1-8b-instant")
-        self.judge_model: str = os.getenv("GROQ_JUDGE_MODEL", "llama-3.3-70b-versatile")
+        self.planning_model: str = os.getenv("GROQ_PLANNING_MODEL", "openai/gpt-oss-120b")
+        self.fast_model: str = os.getenv("GROQ_FAST_MODEL", "openai/gpt-oss-20b")
+        self.judge_model: str = os.getenv("GROQ_JUDGE_MODEL", "openai/gpt-oss-120b")
 
         # --- Groq Rate Limits ---
         self.groq_rpm: int = int(os.getenv("GROQ_REQUESTS_PER_MINUTE", "30"))
-        self.groq_tpm: int = int(os.getenv("GROQ_TOKENS_PER_MINUTE", "14400"))
+        self.groq_tpm: int = int(os.getenv("GROQ_TOKENS_PER_MINUTE", "8000"))
 
         # --- SEC EDGAR ---
         self.sec_user_agent: str = os.getenv(

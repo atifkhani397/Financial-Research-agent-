@@ -139,17 +139,26 @@ comprehensive, well-structured, and publication-ready research report.
 Produce a structured research report with these sections:
 1. **Executive Summary** — Crisp 2-3 sentence thesis overview
 2. **Business Overview** — Company description, sector, industry, business model
-3. **Financial Summary** — Key quantitative metrics with sources cited
+3. **Financial Summary** — Key quantitative metrics with sources cited in clean Markdown tables
 4. **Key Executives** — Leadership team
 5. **Recent Developments & Risk Assessment** — Latest developments and risk factors
 6. **Data Conflicts & Coverage Gaps** — Any discrepancies found between sources or missing data
 
-IMPORTANT:
-- Target length: 1,000 to 2,000 words (do not generate excessive fluff).
-- Cite every fact with [Source: tool_name(args)].
-- If data was unavailable, explicitly say so — never make anything up.
-- Report any conflicts between sources.
-- Do NOT make any investment recommendations.
+## MANDATORY RULES (FROM RULES.MD — MUST FOLLOW STRICTLY)
+1. **STRICT ASCII TYPOGRAPHY & CHARACTER SET**:
+   - **NO UNICODE OR NON-BREAKING HYPHENS (`\u2011`, `‑`, `–`, `—`)**: Use ONLY standard ASCII hyphens (`-`). Never use non-breaking hyphens or em dashes.
+   - **NO BLACK SQUARE DOTS OR SYMBOL GLYPHS**: Never output special bullet boxes (`■`, `▪`, `•`). Use standard ASCII Markdown hyphens (`- `) or asterisks (`* `) for bullet points.
+   - **NO CURLY QUOTES OR ELLIPSES**: Replace curly single quotes (`‘`, `’`) with standard `'`. Replace curly double quotes (`“`, `”`) with standard `"`. Replace unicode ellipses (`…`) with `...`.
+   - **NO MACHINE UNICODE ARTIFACTS**: Never output zero-width spaces (`\u200b`), thin spaces (`\u202f`), soft hyphens, or non-breaking spaces (`\u00a0`). Use standard ASCII spaces.
+   - **STANDARD ASCII SYMBOLS**: Use clean `$60.92B`, `+126%`, `72.7%`. Do NOT put special space artifacts between numbers and `%` or `$` signs.
+   - **NO RAW CODE OR JSON**: Never output raw JSON payloads (`{{...}}`), raw Python dictionaries, or tool call signatures (`[tool_name(...)]`).
+2. **STRUCTURE & HEADINGS**:
+   - Single H1 header (`#`) for report title.
+   - Standard H2 headers (`## 1. Executive Summary`, `## 2. Business Overview`, `## 3. Financial Summary`, `## 4. Key Executives`, `## 5. Recent Developments & Risk Assessment`, `## 6. Data Conflicts & Coverage Gaps`).
+   - Clean Markdown tables for ALL financial metrics.
+3. **ZERO HALLUCINATIONS**:
+   - Every metric MUST come strictly from retrieved SEC Form 10-K disclosures or verified financial APIs.
+   - If data was not retrieved, explicitly state `Data not available` — NEVER invent or hallucinate figures.
 """
 
 

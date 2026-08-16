@@ -39,6 +39,15 @@ export interface ReportResponse {
   metadata: Record<string, any>;
 }
 
+export interface ReportListItem {
+  session_id: string;
+  title: string;
+  query: string;
+  status: string;
+  date: string;
+  pdf_url: string;
+}
+
 export interface MemorySearchResponse {
   query: string;
   results: Array<{
@@ -138,5 +147,16 @@ export const api = {
     const res = await fetch(`${API_BASE_URL}/api/traces`);
     if (!res.ok) throw new Error("Failed to fetch trace gallery");
     return res.json();
+  },
+
+  async getAllReports(): Promise<ReportListItem[]> {
+    const res = await fetch(`${API_BASE_URL}/api/research/reports/all`);
+    if (!res.ok) throw new Error("Failed to fetch research reports list");
+    const data = await res.json();
+    return data.reports || [];
+  },
+
+  getPdfUrl(sessionId: string): string {
+    return `${API_BASE_URL}/api/research/${sessionId}/pdf`;
   }
 };

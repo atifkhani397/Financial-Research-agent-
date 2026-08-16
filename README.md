@@ -12,12 +12,13 @@
 | :--- | :--- | :---: | :--- |
 | **Foundation & Design** | Architecture Specification | ✅ Complete | Modular decoupling, async design (`docs/architecture_specification.md`) |
 | **Tool Infrastructure** | Schema Validation & Registry | ✅ Complete | 12 financial tool schemas, strict JSON validation (`ToolRegistry`) |
-| **LLM & Rate Control** | Orchestration & Throttling | ✅ Complete | Dual-tier LLM integration (`llama-3.3-70b`, `llama-3.1-8b`), token bucket limiter |
+| **LLM & Rate Control** | Orchestration & Throttling | ✅ Complete | Dual-tier LLM integration (`openai/gpt-oss-120b`, `openai/gpt-oss-20b`), token bucket limiter |
 | **Reasoning Engine** | Plan-and-Execute Loop | ✅ Complete | Hybrid Planner + ReAct executor loop, dynamic plan revision |
 | **Data Connectors** | Financial API Integrations | ✅ Complete | Live SEC EDGAR, Financial Modeling Prep (FMP), Tavily Search, NewsAPI |
 | **Memory Management** | Multi-Tier Context Memory | ✅ Complete | Context compaction, ChromaDB vector store, episodic memory |
 | **Financial Analysis** | Quantitative Tool Suite | ✅ Complete | DCF valuation, peer analysis, earnings transcript parser, fact checker |
 | **Data Synthesis** | Multi-Source Hierarchy | ✅ Complete | 5-tier source reliability hierarchy, sentiment-fact alignment |
+| **Report PDF Engine** | `rules.md` Strict Typography | ✅ Complete | Real-time `xhtml2pdf` generation, strict ASCII rules (zero unicode hyphens/dots) |
 | **System Resilience** | Circuit Breakers & Retries | ✅ Complete | Exponential backoff, 50% API failure resilience, circuit breaker pattern |
 | **Query Intelligence** | Disambiguation & Edge Cases | ✅ Complete | Entity classification, stated assumption resolution, non-fabrication guarantees |
 | **Evaluation Suite** | Quantitative Benchmarks | ✅ Complete | 20+ metric evaluation framework (`evaluation/metrics.py`, interactive HTML dashboard) |
@@ -25,8 +26,8 @@
 | **Performance Tuning** | Token & Latency Optimization | ✅ Complete | +8.76 pt evaluation score gain, 32.0% token cost reduction, +21.1% memory utilization |
 | **Observability** | Trace Gallery & Diagnostics | ✅ Complete | Reasoning trace gallery (`docs/trace_gallery.md`), system audit logs |
 | **Quality Audit** | Security & Code Refactoring | ✅ Complete | Codebase modularization, clean type annotations, test suite coverage |
-| **API Service Layer** | REST & WebSocket Server | ✅ Complete | FastAPI REST endpoints, WebSocket real-time trace streaming (`api/`) |
-| **Interactive Frontend** | Web Console & Dashboards | ✅ Complete | React 18 / Vite UI for visual query execution, tool explorer, memory search |
+| **API Service Layer** | REST & WebSocket Server | ✅ Complete | FastAPI REST endpoints, WebSocket streaming, `/pdf` REST export (`api/`) |
+| **Interactive Frontend** | Web Console & Dashboards | ✅ Complete | React 18 / Vite UI, All Generated Reports directory grid with direct PDF downloads |
 | **Deployment** | Full-Stack Containerization | ✅ Complete | Single-command Docker Compose orchestration (`docker-compose.yml`) |
 
 ---
@@ -187,9 +188,9 @@ The implementation leverages modern open-source models, libraries, and framework
    - **Role**: Intelligent coding assistant utilized during development.
    - **Scope**: Assisted with architecture design, vector store chunking logic (`memory/vector_store.py`), evaluation framework integration (`evaluation/metrics.py`), and full-stack REST/WebSocket API and React UI creation.
 
-2. **Groq Cloud API Infrastructure (`llama-3.3-70b-versatile` & `llama-3.1-8b-instant`)**:
+2. **Groq Cloud API Infrastructure (`openai/gpt-oss-120b` & `openai/gpt-oss-20b`)**:
    - **Role**: High-speed LLM inference engine powering the agent at runtime.
-   - **Scope**: `llama-3.3-70b-versatile` manages step planning, plan revisions, multi-source synthesis, and quantitative evaluation judging. `llama-3.1-8b-instant` handles fast ReAct tool selection loops.
+   - **Scope**: `openai/gpt-oss-120b` manages step planning, plan revisions, multi-source synthesis, and quantitative evaluation judging. `openai/gpt-oss-20b` handles fast ReAct tool selection loops.
 
 3. **Sentence Transformers (`sentence-transformers/all-MiniLM-L6-v2`)**:
    - **Role**: Dense embedding generation.
@@ -200,6 +201,8 @@ The implementation leverages modern open-source models, libraries, and framework
 ## 📂 Repository Layout
 
 ```text
+├── rules.md                        # Mandatory report formatting & ASCII typography specification
+├── .agents/AGENTS.md              # Project agent rules configuration
 ├── agent/                         # Core reasoning engine (planner, ReAct loop, LLM wrapper, prompts)
 ├── api/                           # FastAPI REST & WebSocket server (main.py, schemas.py, routes/)
 ├── tools/                         # 12 financial tool implementations & JSON validation schemas
@@ -211,10 +214,10 @@ The implementation leverages modern open-source models, libraries, and framework
 │   ├── src/
 │   │   ├── lib/api.ts             # Type-safe REST API client
 │   │   ├── hooks/                 # WebSocket streaming hook
-│   │   └── pages/                 # Console, Trace, Report, Tools, Memory, Eval, Gallery views
+│   │   └── pages/                 # Console, Trace, Report (Directory Grid & PDF), Tools, Memory, Eval, Gallery views
 ├── scripts/                       # Diagnostic & smoke test scripts
 ├── tests/                         # Automated Pytest suite (unit, integration, and API tests)
-├── results/                       # Generated research reports, stress test reports, and evaluation summaries
+├── results/                       # Generated research reports (.md and .pdf binary files), stress test reports
 ├── docs/                          # Architecture specs, trace gallery, optimization logs, QA logs
 ├── Dockerfile                     # FastAPI backend container manifest
 ├── docker-compose.yml             # Full-stack Docker Compose configuration
